@@ -1,0 +1,225 @@
+/* 基础样式重置 */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	background-color: #f0f8ff;
+	color: #333;
+	line-height: 1.6;
+}
+
+.container {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 20px;
+}
+
+/* 头部样式 */
+header {
+	text-align: center;
+	margin-bottom: 30px;
+	padding: 20px;
+	background: linear-gradient(135deg, #1e90ff, #87cefa);
+	border-radius: 10px;
+	color: white;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+	font-size: 2.5rem;
+	margin-bottom: 10px;
+}
+
+header p {
+	font-size: 1.1rem;
+	opacity: 0.9;
+}
+
+/* 主要内容区域 */
+main {
+	display: flex;
+	flex-direction: column;
+	gap: 30px;
+}
+
+/* 输入区域样式 */
+.input-section {
+	background-color: white;
+	padding: 25px;
+	border-radius: 10px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.form-group {
+	margin-bottom: 20px;
+}
+
+.form-group label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 600;
+	color: #1e90ff;
+}
+
+.form-group textarea,
+.form-group select {
+	width: 100%;
+	padding: 12px;
+	border: 2px solid #e0f0ff;
+	border-radius: 6px;
+	font-size: 1rem;
+	transition: border-color 0.3s;
+}
+
+.form-group textarea {
+	min-height: 60px;
+	resize: vertical;
+}
+
+.form-group textarea:focus,
+.form-group select:focus {
+	outline: none;
+	border-color: #1e90ff;
+}
+
+/* 按钮样式 */
+.btn-primary {
+	background-color: #1e90ff;
+	color: white;
+	border: none;
+	padding: 12px 24px;
+	font-size: 1rem;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background-color 0.3s, transform 0.2s;
+	width: 100%;
+}
+
+.btn-primary:hover {
+	background-color: #1873cc;
+	transform: translateY(-2px);
+}
+
+.btn-primary:active {
+	transform: translateY(0);
+}
+
+/* 输出区域样式 */
+.output-section {
+	background-color: white;
+	padding: 25px;
+	border-radius: 10px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+	text-align: center;
+}
+
+.qr-result {
+	/*子框架 父级框架根据此属性动态调整大小*/
+	min-height: 200px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 2px dashed #e0f0ff;
+	border-radius: 6px;
+	margin-bottom: 10px;
+	
+}
+
+.qr-result canvas {
+	max-width: 100%;
+	height: auto;
+}
+
+.placeholder {
+	color: #87cefa;
+	font-size: 1.1rem;
+}
+
+/* 下载区域样式 */
+.download-section {
+	margin-top: 20px;
+}
+
+.btn-secondary {
+	background-color: white;
+	color: #1e90ff;
+	border: 2px solid #1e90ff;
+	padding: 10px 20px;
+	font-size: 1rem;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+	background-color: #1e90ff;
+	color: white;
+}
+
+/* 隐藏类 */
+.hidden {
+	display: none;
+}
+
+/* 页脚样式 */
+footer {
+	text-align: center;
+	margin-top: 30px;
+	padding: 15px;
+	color: #87cefa;
+	font-size: 0.9rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+	header h1 {
+		font-size: 2rem;
+	}
+
+	.container {
+		padding: 15px;
+	}
+
+	.input-section,
+	.output-section {
+		padding: 20px;
+	}
+}
+
+/* 输入框 */
+#InputSize,
+#IntX,
+#IntY {
+	width: 200px;
+	/* 宽度 */
+	height: 40px;
+	/* 高度 */
+	padding: 8px;
+	/* 内边距 */
+	border: 1px solid #ccc;
+	/* 边框 */
+	border-radius: 4px;
+	/* 圆角 */
+	font-size: 16px;
+	/* 字体大小 */
+	outline: none;
+	/* 去掉点击时的默认边框 */
+	transition: border-color 0.3s;
+	/* 平滑过渡效果 */
+}
+
+/* 鼠标悬停时的样式 */
+#InputSize:hover {
+	border-color: #888;
+}
+
+/* 聚焦时的样式 */
+#InputSize:focus {
+	border-color: #409eff;
+	/* Element Plus 的蓝色 */
+	box-shadow: 0 0 5px rgba(64, 158, 255, 0.5);
+}

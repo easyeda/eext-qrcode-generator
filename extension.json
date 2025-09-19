@@ -1,0 +1,48 @@
+{
+	"name": "eext-qrcode-generator",
+	"uuid": "dc575b025706476cabdfa7c45ec24bfb",
+	"displayName": "二维码/条形码丝印生成工具",
+	"description": "二维码/条形码丝印生成工具",
+	"version": "0.0.2",
+	"publisher": "JLCEDA <support@lceda.cn>",
+	"engines": {
+		"eda": "^2.3.0"
+	},
+	"license": "Apache-2.0",
+	"repository": {
+		"type": "extension-store",
+		"url": ""
+	},
+	"categories": "PCB",
+	"keywords": ["PCB"],
+	"images": {
+		"logo": "./images/logo.png"
+	},
+	"homepage": "https://pro.lceda.cn",
+	"bugs": "https://lceda.cn/page/feedback?originPage=other",
+	"activationEvents": {},
+	"entry": "./dist/index",
+	"dependentExtensions": {},
+	"headerMenus": {
+		"home": [],
+		"sch": [],
+		"pcb": [
+			{
+				"id": "QRCode",
+				"title": "二维码生成",
+				"menuItems": [
+					{
+						"id": "CreateQRCode",
+						"title": "生成",
+						"registerFn": "CreateQRCode"
+					},
+					{
+						"id": "ImportImg",
+						"title": "从图片导入",
+						"registerFn": "ImportImg"
+					}
+				]
+			}
+		]
+	}
+}

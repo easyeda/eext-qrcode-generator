@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>二维码生成器</title>
+		<link rel="stylesheet" href="/iframe/css/style.css" />
+		<script src="/iframe/js/script.js"></script>	
+		<script src="/iframe/js/JsBarcode.all.min.js"></script>	<!-- 	二维码生成库 安装到本地 开源协议：MIT -->
+		<script src="/iframe/js/qrcode.min.js"></script>		<!-- 	条形码生成库 安装到本地 开源协议：MIT -->
+		<!-- EDA环境下与调试环境下的引用路径不同 调试环境下需要使用相对路径否则不生效 如果使用HbuilderX调试 那么取消以下注释
+		<link rel="stylesheet" href="css/style.css" />
+		<script src="js/script.js"></script>
+		<script src="js/qrcode.min.js"></script>
+		<script src="js/JsBarcode.all.min.js"></script> -->
+	</head>
+	<body>
+		<div class="container">
+			<main>
+				<div class="input-section">
+					<div class="form-group">
+						<label style="text-align: center" for="qr-text">输入内容</label>
+						<textarea id="qr-text" placeholder="请输入文本或URL..."></textarea>
+					</div>
+
+					<div
+						style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px">
+						<label for="qr-size" style="white-space: nowrap">图像尺寸(px)</label>
+						<input id="InputSize" type="text" style="width: 70px" value="100" />
+						<label for="qr-size" style="white-space: nowrap">X坐标</label>
+						<input id="IntX" type="text" style="width: 50px" value="0" />
+						<label for="qr-size" style="white-space: nowrap">Y坐标</label>
+						<input id="IntY" type="text" style="width: 50px" value="0" />
+					</div>
+
+					<div style="display: flex; width: 100%; gap: 10px">
+						<button id="generate-btn" class="btn-primary" style="flex: 1">生成二维码</button>
+						<button id="getBrCode" class="btn-primary" style="flex: 1">生成条形码</button>
+						<button id="history" style="display: none;" class="btn-primary" style="flex: 1">从历史导入</button>
+					</div>
+				</div>
+
+				<div class="output-section">
+					<div class="color-picker">
+						<input type="checkbox" name="color" id="buttontest" value="color" />
+						<label for="buttontest">彩色丝印</label>
+						<input type="color" id="qr-color" value="#000000" />
+					</div>
+					<div id="qr-result" class="qr-result">
+						<div class="placeholder">
+							<p>二维码生成区</p>
+						</div>
+					</div>
+
+					<div id="download-section" class="download-section hidden">
+						<button id="download-btn" class="btn-secondary">下载</button>
+						<button id="Create-btn" class="btn-secondary">放置</button>
+					</div>
+				</div>
+			</main>
+		</div>
+
+		<!-- 引入二维码生成库 此处为CDN方式导入 如果EDA客户端需要完全断网 则不使用此方式导入 -->
+		<!-- <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script> -->
+	</body>
+</html>
