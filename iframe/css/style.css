@@ -7,7 +7,7 @@
 
 body {
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-	background-color: #f0f8ff;
+	background-color: #f1e7e3;
 	color: #333;
 	line-height: 1.6;
 }
@@ -49,38 +49,43 @@ main {
 /* 输入区域样式 */
 .input-section {
 	background-color: white;
-	padding: 25px;
+	/* padding: 15px; */
 	border-radius: 10px;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .form-group {
-	margin-bottom: 20px;
+	display: flex;
+	align-items: stretch;
+	flex-grow: 1;
 }
 
-.form-group label {
+/* .form-group label {
 	display: block;
 	margin-bottom: 8px;
 	font-weight: 600;
 	color: #1e90ff;
-}
+} */
 
 .form-group textarea,
 .form-group select {
+	border: none;
+	outline: none;
+	min-height: 100px;
 	width: 100%;
-	padding: 12px;
-	border: 2px solid #e0f0ff;
+	padding:0;
+	/* border: 2px solid #e0f0ff; */
 	border-radius: 6px;
 	font-size: 1rem;
 	transition: border-color 0.3s;
 }
 
-.form-group textarea {
-	min-height: 60px;
-	resize: vertical;
+/* .form-group textarea {
+	/* min-height: 130px; */
+resize: vertical;
 }
 
-.form-group textarea:focus,
+*/ .form-group textarea:focus,
 .form-group select:focus {
 	outline: none;
 	border-color: #1e90ff;
@@ -92,6 +97,7 @@ main {
 	color: white;
 	border: none;
 	padding: 12px 24px;
+	margin-top: -15px;
 	font-size: 1rem;
 	border-radius: 6px;
 	cursor: pointer;
@@ -108,25 +114,33 @@ main {
 	transform: translateY(0);
 }
 
+
 /* 输出区域样式 */
 .output-section {
+	/* 父级框架·*/
 	background-color: white;
 	padding: 25px;
 	border-radius: 10px;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 	text-align: center;
+	display: flex;
+	flex-direction: row;
+	/* align-items: center; */
+	justify-content: center;
 }
 
 .qr-result {
 	/*子框架 父级框架根据此属性动态调整大小*/
-	min-height: 200px;
+	min-height: 100px;
+	width: 200px;
+	margin-right: 20px;
+	height: 130px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border: 2px dashed #e0f0ff;
+	/* border: 2px dashed #e0f0ff;	 */
 	border-radius: 6px;
 	margin-bottom: 10px;
-	
 }
 
 .qr-result canvas {
@@ -135,13 +149,18 @@ main {
 }
 
 .placeholder {
-	color: #87cefa;
+	/* color: #87cefa; */
 	font-size: 1.1rem;
 }
 
 /* 下载区域样式 */
 .download-section {
-	margin-top: 20px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	/* 两端对齐 */
+	gap: 10px;
 }
 
 .btn-secondary {

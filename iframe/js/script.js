@@ -1,165 +1,53 @@
-// const { create } = require("qrcode");
-
 document.addEventListener('DOMContentLoaded', () => {
-	// 获取DOM元素
-	const qrText = document.getElementById('qr-text'); //二维码和条形码内容
-	const qrSize = document.getElementById('InputSize'); //尺寸
-	const generateBtn = document.getElementById('generate-btn'); //按钮对象
-	const qrResult = document.getElementById('qr-result'); //输出区域的div对象
-	const downloadSection = document.getElementById('download-section'); //下载按钮的父控件对象
-	const downloadBtn = document.getElementById('download-btn'); //下载按钮对象
-	const createBtn = document.getElementById('Create-btn'); //创建按钮对象
-	const getBrCodeBtn = document.getElementById('getBrCode');
-	const IntX = document.getElementById('IntX'); // 坐标 下同
-	const IntY = document.getElementById('IntY');
-	const color = document.getElementById('qr-color'); //彩色丝印配置相关
-	const ColorButton = document.getElementById('buttontest'); // 彩色丝印开关
-	const HistoryDataBtn = document.getElementById('history'); //查看历史记录 暂时不写
-	let Temp = 0; //耦合度太高了 拿一个变量作为是否在画布创建图像的开关
-	let imgtest = ''; //存储图形的容器
-	let ImgType = 0; // 条形码或者二维码的标志位
-	// 当前生成的图像数据
-	let currentImageData = null;
-
-	// Base64转blob 别的demo借的
-	function base64ToBlob(base64, contentType) {
-		const base64Message = base64.split(',')[1];
-		const byteCharacters = atob(base64Message);
-		let byteArrays = [];
-		for (let i = 0; i < byteCharacters.length; i++) {
-			byteArrays.push(byteCharacters.charCodeAt(i));
-		}
-		return new Blob([new Uint8Array(byteArrays)], {
-			type: contentType,
-		});
-	}
-
-	// 处理传递过来的二维码
-	async function BprocessImageToEDA(imageData, size, x, y) {
-		try {
-			const imageBlob = base64ToBlob(imageData, 'image/png');
-			const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(imageBlob, size * 3,
-				size, 0.5, 0.5, 0, 0, true, false);
-
-			let value = ColorButton.checked; //检查丝印开关状态（其实是只能单选的多选）	下同
-			// console.log(value);
-			if (Temp) { //由于做完之后客户才要求分离创建按钮 耦合度太高 所以直接拿一个标志位作为是否创建的凭证
-				eda.pcb_Document.setCanvasOrigin(0, 0);	//修改坐标一致
-				if (value) { //是否开启彩色丝印
-					eda.pcb_PrimitiveObject.create(EPCB_LayerId.TOP_SILKSCREEN, x, y, imageData, size * 3,
-						size, 0, false, 'img', false);
-				} else {
-					eda.pcb_PrimitiveImage.create(x, y, edaImage, EPCB_LayerId.TOP_SILKSCREEN, size * 3,
-						size, 0, false, false);
-				}
-				Temp = 0;
-			}
-			return true;
-		} catch (error) {
-			// showMessage('处理图像时出错: ' + error.message); 在HbuilderX环境下 由于缺少eda对象 所以会报错 直接屏蔽
-			// return false;
-		}
-	}
-
-	// 处理传递过来的条形码
-	async function processImageToEDA(imageData, size, x, y) {
-		try {
-			const imageBlob = base64ToBlob(imageData, 'image/png');
-			const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(imageBlob, size, size,
-				0.5, 0.5, 0, 0, true, false);
-			let value = ColorButton.checked;
-			// console.log(value);
-			if (Temp) {
-				eda.pcb_Document.setCanvasOrigin(0, 0);
-				if (value) {
-					eda.pcb_PrimitiveObject.create(EPCB_LayerId.TOP_SILKSCREEN, x, y, imageData, size, size,
-						0, false, 'img', false);
-				} else {
-					eda.pcb_PrimitiveImage.create(x, y, edaImage, EPCB_LayerId.TOP_SILKSCREEN, size, size,
-						0, false, false);
-				}
-				Temp = 0;
-			}
-			return true;
-		} catch (error) {
-			// showMessage('处理图像时出错: ' + error.message);
-			// return false;
-		}
-	}
-
-	// 生成条形码
-	async function generateBarcode() {
-		const text = qrText.value.trim(); //清除前后空格
-		const Int_X = parseInt(IntX.value, 10);
-		const Int_Y = parseInt(IntY.value, 10);
-		if (!text) {
-			showMessage('请输入要生成的条形码的内容！');
+	// 输入的内容
+	const TextContent = document.getElementById('qr-text'); // 二维码内容
+	const ImgSize = document.getElementById('InputSize'); // 图像尺寸
+	const x = document.getElementById('xCoord'); // 生成在画布上的坐标
+	const y = document.getElementById('yCoord');
+	const PointDiv = document.getElementById('coordinateInputs'); // 输入框所在的div
+	const Color = document.getElementById('qr-color'); // 丝印颜色
+	// 标志位
+	let CreateType = document.getElementById('CreateType'); // 是否从坐标生成的开关
+	let ColorFlag = document.getElementById('buttontest'); // 彩色丝印开关
+	let ImgType = 0; // 图像类型，0为二维码，1为条形码
+	let Create_Type = 0; // 事件是否完成的标志位
+	// 按钮对象
+	const CreateQr_Button = document.getElementById('generate-btn'); // 生成二维码按钮
+	const CreateBr_Button = document.getElementById('getBrCode'); // 生成条形码按钮
+	const Downolad_Button = document.getElementById('download-btn'); // 通用下载按钮
+	const Create_EDA = document.getElementById('Create-btn'); // 通用放置按钮
+	const Back_Button = document.getElementById('Back-btn'); //取消按钮
+	// 输出区域
+	const Result = document.getElementById('qr-result'); // 二维码输出区域
+	const DownloadSection = document.getElementById('download-section'); // 下载按钮的父控件
+	// 全局临时变量
+	let Base64 = ''; // 存储生成图像的base64数据
+	let BlobData = ''; // 存储生成图像的blob数据
+	let ImgId = ''; //图元ID
+	// 函数相关
+	/* ================================二维码生成函数================================================================== */
+	async function Create_QRCode() {
+		let text = TextContent.value.trim(); // 获得清除前后空格后的二维码内容
+		let size = parseInt(ImgSize.value, 10); // 将获得的尺寸以10进制输出
+		let color = '#000000';
+		if (!text || !size) {
+			// 内容或尺寸未填写则提示
+			showMessage('参数不完整');
 			return;
 		}
-
-		const size = parseInt(qrSize.value, 10);
-		if (!size) {
-			showMessage('请输入正确的条形码尺寸！');
-			return;
+		if (ColorFlag.checked) {
+			color = Color.value;
 		}
-
-		qrResult.innerHTML = '';
-
-		try {
-			const canvas = document.createElement('canvas');
-			JsBarcode(canvas, text, {
-				lineColor: color.value,
-				format: 'CODE128',
-				width: 2,
-				height: 100,
-				displayValue: false,
-				correctLevel: 3,
-			});
-
-			const img = document.createElement('img');
-			img.src = canvas.toDataURL('image/png');
-			qrResult.appendChild(img);
-
-			currentImageData = img.src;
-			imgtest = img.src;
-			ImgType = 1;
-			if (await BprocessImageToEDA(img.src, size, Int_X, Int_Y)) {
-				showMessage('条形码已生成');
-				console.log(parseInt(IntX.value, 10));
-				downloadSection.classList.remove('hidden');
-			}
-		} catch (error) {
-			// showMessage('生成条形码时出错: ' + error.message);
-		}
-	}
-
-	// 生成二维码
-	async function generateQRCode() {
-		const text = qrText.value.trim();
-		const Int_X = parseInt(IntX.value, 10);
-		const Int_Y = parseInt(IntY.value, 10);
-		if (!text) {
-			showMessage('请输入要生成二维码的内容');
-			return;
-		}
-
-		const size = parseInt(qrSize.value, 10);
-		if (!size) {
-			showMessage('请输入有效的二维码尺寸');
-			return;
-		}
-
-		qrResult.innerHTML = '';
-
+		Result.innerHTML = ''; // 清除上一次生成的内容
 		try {
 			const canvas = await new Promise((resolve, reject) => {
 				QRCode.toCanvas(
 					text, {
-						width: 200,
+						width: 150,
 						margin: 2,
 						correctLevel: 3,
 						color: {
-							dark: color.value,
+							dark: color,
 							light: '#ffffff',
 						},
 					},
@@ -169,71 +57,92 @@ document.addEventListener('DOMContentLoaded', () => {
 					},
 				);
 			});
-
-			qrResult.appendChild(canvas);
-			currentImageData = canvas.toDataURL('image/png');
-
-			if (await processImageToEDA(currentImageData, size, Int_X, Int_Y)) {
-				imgtest = currentImageData;
-				ImgType = 0;
-				showMessage('二维码已生成');
-				downloadSection.classList.remove('hidden');
-			}
+			Result.appendChild(canvas); // 图像渲染
+			DownloadSection.classList.remove('hidden');
+			Base64 = await canvas.toDataURL('image/png');
+			ImgType = 0;
+			BlobData = base64ToBlob(Base64, 'image/png');
+			console.log(Blob);
+			showMessage('二维码已生成');
 		} catch (error) {
 			// showMessage('生成二维码时出错: ' + error.message);
+			console.log(error.message);
 		}
 	}
 
-	// 下载图像
-	function downloadImage() {
-		if (!currentImageData) {
-			showMessage('没有可下载的图像');
+	/* ===============================条形码生成函数================================================================== */
+	async function Create_BRCode() {
+		// 生成条形码
+		let text = TextContent.value.trim(); // 获得清除前后空格后的条形码内容
+		let size = parseInt(ImgSize.value, 10); // 将获得的尺寸以10进制输出
+		let color = '#000000';
+		if (!text || !size) {
+			// 内容或尺寸未填写则提示
+			showMessage('参数不完整');
 			return;
 		}
+		if (ColorFlag.checked) {
+			color = Color.value;
+		}
 
-		const link = document.createElement('a');
-		link.download = new Date().toISOString().replace(/[:.]/g, '-') + '_丝印.png';
-		link.href = currentImageData;
-
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
+		Result.innerHTML = '';
+		try {
+			const canvas = document.createElement('canvas');
+			JsBarcode(canvas, text, {
+				lineColor: color,
+				format: 'CODE128',
+				width: 2,
+				height: 100,
+				displayValue: false,
+				correctLevel: 3,
+			});
+			const img = document.createElement('img');
+			img.src = canvas.toDataURL('image/png');
+			Result.appendChild(img);
+			DownloadSection.classList.remove('hidden');
+			Base64 = img.src;
+			BlobData = base64ToBlob(Base64, 'image/png');
+			ImgType = 1;
+			showMessage('条形码已生成');
+		} catch (error) {
+			// showMessage('生成条形码时出错: ' + error.message);
+		}
 	}
 
-	// 显示消息函数
+	/* ================================非强制弹窗提示函数================================================================== */
 	function showMessage(message) {
 		// 检查是否已存在样式
 		if (!document.getElementById('message-style')) {
 			const style = document.createElement('style');
 			style.id = 'message-style';
 			style.textContent = `
-                @keyframes fadeInOut {
-                    0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-                    20% { opacity: 1; transform: translateX(-50%) translateY(0); }
-                    80% { opacity: 1; transform: translateX(-50%) translateY(0); }
-                    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-                }
-                .message {
-                    position: fixed;
-                    top: 20px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background-color: #1e90ff;
-                    color: white;
-                    padding: 12px 24px;
-                    border-radius: 6px;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                    z-index: 1000;
-                    animation: fadeInOut 3s forwards;
-                }
-            `;
+	                @keyframes fadeInOut {
+	                    0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+	                    20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+	                    80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+	                    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+	                }
+	                .message {
+	                    position: fixed;
+	                    top: 20px;
+	                    left: 50%;
+	                    transform: translateX(-50%);
+	                    background-color: #1e90ff;
+	                    color: white;
+	                    padding: 12px 24px;
+	                    border-radius: 6px;
+	                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	                    z-index: 1000;
+	                    animation: fadeInOut 3s forwards;
+	                }
+	            `;
 			document.head.appendChild(style);
 		}
 
 		const messageElement = document.createElement('div');
 		messageElement.className = 'message';
 		messageElement.textContent = message;
-		document.body.appendChild(messageElement); //在ifram上渲染
+		document.body.appendChild(messageElement); // 在ifram上渲染
 
 		setTimeout(() => {
 			if (document.body.contains(messageElement)) {
@@ -242,26 +151,131 @@ document.addEventListener('DOMContentLoaded', () => {
 		}, 3000);
 	}
 
-	async function CreateBtn() { //创建按钮
-		Temp = 1;
-		if (!ImgType) {
-			await processImageToEDA(imgtest, parseInt(qrSize.value, 10), parseInt(IntX.value, 10), parseInt(
-				IntY.value, 10));
-		} else {
-			await BprocessImageToEDA(imgtest, parseInt(qrSize.value, 10), parseInt(IntX.value, 10),
-				parseInt(IntY.value, 10));
+	/* ================================下载生成好的图像================================================================== */
+	function Download() {
+		if (!Base64) {
+			Base64('图像未生成');
+			return;
 		}
+		const link = document.createElement('a');
+		link.download = new Date().toISOString().replace(/[:.]/g, '-') + '_丝印.png';
+		link.href = Base64;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+	}
+	/* ================================在画布上创建图像_坐标生成================================================================== */
+	async function CreateImg() {
+		try {
+			Create_Type = 1;
+			let height = ImgSize.value;
+			let width = ImgSize.value;
+			const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(BlobData, width, height,
+				0.5, 0.5, 0, 0, true, false); // Blob转化为复杂多边形对象
+			console.log(edaImage);
+			if (ImgType) {
+				// 条形码外形
+				width *= 3;
+			}
+			if (ColorFlag.checked && CreateType.checked) { //从坐标生成，并开启彩色丝印开关
+				// 彩色丝印开关
+				eda.pcb_PrimitiveObject.create(EPCB_LayerId.TOP_SILKSCREEN, x.value, y.value, Base64, width,
+					height, 0, false, 'img', false);
+			} else if (CreateType.checked) { //从坐标生成
+				eda.pcb_PrimitiveImage.create(x.value, y.value, edaImage, EPCB_LayerId.TOP_SILKSCREEN,
+					width, height, 0, false, false); // 在画布上创建图像
+			} else if (!CreateType.checked) {
+				showMessage('请在画布上点击以放置丝印');
+			} else {
+				console.log("意外事件");
+				return;
+			}
+			// showMessage("成功");
+			return true;
+		} catch (error) {
+			showMessage('处理图像时出错: ' + error.message);
+			return false;
+		}
+	}
+
+	/* ================================base64转blob================================================================== */
+	function base64ToBlob(base64, contentType) {
+		const base64Message = base64.split(',')[1]; // 去除
+		const byteCharacters = atob(base64Message);
+		let byteArrays = [];
+		for (let i = 0; i < byteCharacters.length; i++) {
+			byteArrays.push(byteCharacters.charCodeAt(i));
+		}
+		const blob = new Blob([new Uint8Array(byteArrays)], {
+			type: contentType,
+		});
+		console.log(blob);
+		return blob;
+	}
+	/* ================================关闭Iframe窗口================================================================== */
+	function CloseWindow() {
+		eda.sys_IFrame.closeIFrame('');
+	}
+	/* ================================定时器测试函数================================================================== */
+	async function test() {
 
 	}
 
-	function HistoryData() {
-		window.alert("还没写");
-	}
 
-	// 事件监听
-	generateBtn.addEventListener('click', generateQRCode);
-	downloadBtn.addEventListener('click', downloadImage);
-	getBrCodeBtn.addEventListener('click', generateBarcode);
-	createBtn.addEventListener('click', CreateBtn);
-	HistoryDataBtn.addEventListener('click', HistoryData)
+
+
+	// 事件绑定
+	CreateQr_Button.addEventListener('click', Create_QRCode); // 生成二维码
+	CreateBr_Button.addEventListener('click', Create_BRCode); // 生成条形码
+	Downolad_Button.addEventListener('click', Download); // 下载生成的图像
+	Create_EDA.addEventListener('click', CreateImg); // 在画布上生成图像
+	Back_Button.addEventListener('click', CloseWindow); //关闭窗口
+
+	// 监听页面获得焦点
+	window.onfocus = async function() {
+		// console.log('网页已获得焦点');
+		const Point = await eda.pcb_SelectControl.getCurrentMousePosition();
+		// console.log(Point.x * 0.127 + '，' + Point.y * 0.127);
+	};
+
+	// 监听页面失去焦点
+	window.onblur = async function() {
+		// console.log('网页已失去焦点');
+		const Point = await eda.pcb_SelectControl.getCurrentMousePosition(); //获得鼠标在画布上的坐标
+		// console.log((Point.x / 5) * 0.127 + '，' + (Point.y / 5) * 0.127); // 换算成EDA的坐标
+		let height = ImgSize.value;
+		let width = ImgSize.value;
+		const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(BlobData, width, height,
+			0.5, 0.5, 0, 0, true, false); // Blob转化为复杂多边形对象
+		if (ImgType) {
+			// 条形码外形
+			width *= 3;
+		}
+		if (CreateType.checked || !Create_Type) {
+			console.log('退出');
+			return;
+		}
+		if (ColorFlag.checked && !CreateType.checked) {
+			// 彩色丝印开关
+			eda.pcb_PrimitiveObject.create(EPCB_LayerId.TOP_SILKSCREEN, Point.x, Point.y, Base64, width,
+				height, 0, false, 'img', false);
+		} else if (!CreateType.checked) {
+			console.log(CreateType.checked);
+			const NoColorImg = eda.pcb_PrimitiveImage.create(Point.x, Point.y, edaImage, EPCB_LayerId
+				.TOP_SILKSCREEN,
+				width, height, 0, false, false); // 在画布上创建图像\
+				console.log((await NoColorImg).getState_PrimitiveId());
+				eda.pcb_PrimitiveImage.modify("e10",0,0, EPCB_LayerId.TOP_SILKSCREEN,100,100,0,false,false);
+		} else {
+			console.log('鼠标意外事件');
+		}
+		Create_Type = 0;
+	};
+
+
+
 });
+
+// //参数 名称：固定参数不要动，类型：固定参数不要动，起始位置x，起始位置y，终点位置x，终点位置y，宽度，是否锁定：固定参数不要动
+// eda.pcb_PrimitiveLine.create("", EPCB_LayerId.TOP_SILKSCREEN,0,0,0,100,20,false);
+// console.log(eda.pcb_PrimitiveLine.create("", EPCB_LayerId.TOP_SILKSCREEN,0,0,0,100,20,false).eda)

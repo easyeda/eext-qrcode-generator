@@ -1,0 +1,35 @@
+#coordinateInputs {
+    margin-left: -5px;
+    width: fit-content;
+    display: flex;
+    flex-direction: column; /* 改为纵向排列 */
+    gap: 10px; /* 上下间距 */
+}
+
+#xCoord, #yCoord {
+    height: 45px;
+    width: 60px;
+    padding: 0 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-size: 16px;
+    transition: all 0.2s ease-in-out;
+}
+
+#xCoord:hover, #yCoord:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+}
+
+#xCoord:focus, #yCoord:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+}
+
+#xCoord:not(:focus):not(:hover), #yCoord:not(:focus):not(:hover) {
+    border-color: #ccc;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+

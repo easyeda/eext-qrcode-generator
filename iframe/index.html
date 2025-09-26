@@ -3,60 +3,74 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>二维码生成器</title>
+		<title>生成二维码</title>
 		<link rel="stylesheet" href="/iframe/css/style.css" />
-		<script src="/iframe/js/script.js"></script>	
-		<script src="/iframe/js/JsBarcode.all.min.js"></script>	<!-- 	二维码生成库 安装到本地 开源协议：MIT -->
-		<script src="/iframe/js/qrcode.min.js"></script>		<!-- 	条形码生成库 安装到本地 开源协议：MIT -->
-		<!-- EDA环境下与调试环境下的引用路径不同 调试环境下需要使用相对路径否则不生效 如果使用HbuilderX调试 那么取消以下注释
+		<script src="/iframe/js/script.js"></script>
+		<script src="/iframe/js/JsBarcode.all.min.js"></script>
+		<!-- 	二维码生成库 安装到本地 开源协议：MIT -->
+		<script src="/iframe/js/qrcode.min.js"></script>
+		<link rel="stylesheet" href="/iframe/css/input.css" />
+		<link rel="stylesheet" href="/iframe/EDA_UI.css" />
+		<!-- 	条形码生成库 安装到本地 开源协议：MIT -->
+		<!-- EDA环境下与调试环境下的引用路径不同 调试环境下需要使用相对路径否则不生效 如果使用HbuilderX调试 那么取消以下注释 -->
 		<link rel="stylesheet" href="css/style.css" />
 		<script src="js/script.js"></script>
 		<script src="js/qrcode.min.js"></script>
-		<script src="js/JsBarcode.all.min.js"></script> -->
+		<script src="js/JsBarcode.all.min.js"></script>
+		<link rel="stylesheet" href="css/input.css" />
+		<link rel="stylesheet" href="EDA_UI.css" />
 	</head>
 	<body>
 		<div class="container">
 			<main>
 				<div class="input-section">
 					<div class="form-group">
-						<label style="text-align: center" for="qr-text">输入内容</label>
-						<textarea id="qr-text" placeholder="请输入文本或URL..."></textarea>
-					</div>
-
-					<div
-						style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px">
-						<label for="qr-size" style="white-space: nowrap">图像尺寸(px)</label>
-						<input id="InputSize" type="text" style="width: 70px" value="100" />
-						<label for="qr-size" style="white-space: nowrap">X坐标</label>
-						<input id="IntX" type="text" style="width: 50px" value="0" />
-						<label for="qr-size" style="white-space: nowrap">Y坐标</label>
-						<input id="IntY" type="text" style="width: 50px" value="0" />
-					</div>
-
-					<div style="display: flex; width: 100%; gap: 10px">
-						<button id="generate-btn" class="btn-primary" style="flex: 1">生成二维码</button>
-						<button id="getBrCode" class="btn-primary" style="flex: 1">生成条形码</button>
-						<button id="history" style="display: none;" class="btn-primary" style="flex: 1">从历史导入</button>
+						<!-- <label style="text-align: center" for="qr-text">输入内容</label> -->
+						<textarea id="qr-text" style="resize: none" placeholder="请输入内容"></textarea>
 					</div>
 				</div>
-
-				<div class="output-section">
-					<div class="color-picker">
-						<input type="checkbox" name="color" id="buttontest" value="color" />
-						<label for="buttontest">彩色丝印</label>
-						<input type="color" id="qr-color" value="#000000" />
-					</div>
+				<div style="display: flex; width: 100%; gap: 10px">
+					<button id="generate-btn" class="btn-primary" style="flex: 1">二维码</button>
+					<button id="getBrCode" class="btn-primary" style="flex: 1">条形码</button>
+					<button id="history" style="display: none" class="btn-primary" style="flex: 1">从历史导入</button>
+					<!-- 待定 -->
+				</div>
+				<div style="display: flex; align-items: center; width: 100%; justify-content: start; margin-top: -15px">
+					<label for="qr-size" style="white-space: nowrap; margin-right: 20px">图片宽度(mm)： </label>
+					<input id="InputSize" type="text" style="width: 70px; margin-right: 100px" value="100" />
+					<input type="checkbox" name="color" id="buttontest" value="color" class="EDA_UI_FuXuanKuang" />
+					<label for="buttontest">生成彩色图片</label>
+					<input type="color" id="qr-color" value="#000000" />
+				</div>
+				<div class="output-section" style="margin-top: -15px">
 					<div id="qr-result" class="qr-result">
 						<div class="placeholder">
-							<p>二维码生成区</p>
+							<p>预览区</p>
 						</div>
 					</div>
-
-					<div id="download-section" class="download-section hidden">
+				</div>
+				<div
+					class="color-picker"
+					style="display: flex; align-items: center; justify-content: flex-start; flex-wrap: nowrap; gap: 10px; margin-top: -15px"
+				>
+					<input type="checkbox" name="CreateType" id="CreateType" class="EDA_UI_FuXuanKuang" />
+					<label for="CreateType">放置在坐标 </label>
+					<p>x：<input type="text" id="xCoord" placeholder="输入X" value="0" /></p>
+					<p>y：<input type="text" id="yCoord" placeholder="输入Y" value="0" /></p>
+				</div>
+				<div id="download-section" class="download-section" style="margin-top: -15px">
+					<div>
 						<button id="download-btn" class="btn-secondary">下载</button>
+						<button id="Save-btn" class="btn-secondary" style="display: none;">保存在历史</button>
+					</div>
+					<div>
 						<button id="Create-btn" class="btn-secondary">放置</button>
+						<button id="Back-btn" class="btn-secondary">取消</button>
 					</div>
 				</div>
+				<!-- 				<div id="coordinateInputs" class="input-group" style="display:; margin-left:10px;">
+
+				</div> -->
 			</main>
 		</div>
 

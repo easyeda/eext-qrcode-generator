@@ -1,0 +1,77 @@
+/* style.css */
+
+/* --- 美化复选框样式 --- */
+/* 核心逻辑：通过 input 的类名，找到它后面的 label 进行样式化 */
+
+/* 1. 隐藏原生复选框 */
+.EDA_UI_FuXuanKuang {
+    opacity: 0;
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+/* 2. 为紧跟在带类名的 input 后面的 label 添加样式 */
+.EDA_UI_FuXuanKuang + label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none; /* 防止文字被选中 */
+    font-size: 16px;
+    color: #333;
+
+    /* --- 关键修复点 --- */
+    /* 为 label 添加相对定位，使其成为 ::after 绝对定位的参考系 */
+    position: relative; 
+}
+
+/* 3. 在 label 内部创建一个可视化的复选框方框 */
+.EDA_UI_FuXuanKuang + label::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    margin-right: 10px; /* 方框与文字的间距 */
+    background-color: #fff;
+    flex-shrink: 0; /* 防止方框被压缩 */
+    transition: all 0.2s ease-in-out; /* 平滑过渡效果 */
+}
+
+/* 4. 当复选框被选中时，改变 label 的样式（主要是改变 ::before 的样式） */
+.EDA_UI_FuXuanKuang:checked + label::before {
+    background-color: #007bff; /* 选中后的背景色 */
+    border-color: #007bff; /* 选中后的边框色 */
+}
+
+/* 5. 使用 ::after 伪元素来创建内部的“勾” */
+.EDA_UI_FuXuanKuang + label::after {
+    content: '';
+    position: absolute;
+    /* --- 关键修复点 --- */
+    /* 现在这些 left/top 值是相对于 label 的，我们需要让它在 ::before 方框内部居中 */
+    /* label 的 padding-left 是 0, ::before 的宽度是 20px, 勾的宽度是 6px */
+    /* 水平居中: (20px - 6px) / 2 = 7px。我们取 7px 看起来更居中 */
+    left: 7px; 
+    /* 垂直居中: (20px - 12px) / 2 = 4px。我们取 4px 看起来更居中 */
+    top: 4px; 
+    
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0; /* 默认是透明的（不可见） */
+    transition: opacity 0.2s ease-in-out; /* 平滑过渡效果 */
+}
+
+/* 6. 当复选框被选中时，让“勾”显示出来 */
+.EDA_UI_FuXuanKuang:checked + label::after {
+    opacity: 1; /* 变为不透明（可见） */
+}
+
+/* --- （可选）悬停效果 --- */
+.EDA_UI_FuXuanKuang + label:hover::before {
+    border-color: #80bdff; /* 鼠标悬停时边框变色 */
+}
