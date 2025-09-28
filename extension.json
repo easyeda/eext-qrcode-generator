@@ -3,20 +3,20 @@
 	"uuid": "dc575b025706476cabdfa7c45ec24bfb",
 	"displayName": "二维码生成器",
 	"description": "二维码/条形码丝印生成工具",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"publisher": "JLCEDA <support@lceda.cn>",
 	"engines": {
 		"eda": "^2.2.40"
 	},
 	"license": "Apache-2.0",
 	"repository": {
-		"type": "extension-store",
+		"type": "github",
 		"url": "https://github.com/easyeda/eext-qrcode-generator.git"
 	},
 	"categories": "PCB",
 	"keywords": ["PCB","二维码"],
 	"images": {
-		"logo": "./images/logo.jpg"
+		"logo": "./images/logo.png"
 	},
 	"homepage": "https://github.com/easyeda/eext-qrcode-generato",
 	"bugs": "https://github.com/easyeda/eext-qrcode-generator/issues",

@@ -1,7 +1,13 @@
 # 1.1.1
+
 ## 变更
+
 1. 精简readme，去掉不重要的内容说明  
 2. changelog删除sdk相关的变更
+3. extension的"repository""type"更正
+4. 移除test.txt
+5. 移除根目录下index.ts
+6. 修正logo黑边
 
 # 1.1.0
 
@@ -11,6 +17,7 @@
 2. 删除CHANGELOG的合并冲突标记  
 3. 修正logo比例
 4. 修正style.css样式
+
 
 # 1.0.1
 
