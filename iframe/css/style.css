@@ -81,9 +81,9 @@ main {
 }
 
 /* .form-group textarea {
-	/* min-height: 130px; */
+	/* min-height: 130px;
 resize: vertical;
-}
+} */
 
 */ .form-group textarea:focus,
 .form-group select:focus {
