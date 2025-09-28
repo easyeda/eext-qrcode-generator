@@ -16,7 +16,7 @@
 	"categories": "PCB",
 	"keywords": ["PCB","二维码"],
 	"images": {
-		"logo": "./images/logo.png"
+		"logo": "./images/logo.jpg"
 	},
 	"homepage": "https://github.com/easyeda/eext-qrcode-generato",
 	"bugs": "https://github.com/easyeda/eext-qrcode-generator/issues",
