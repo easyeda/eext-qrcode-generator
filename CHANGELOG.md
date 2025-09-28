@@ -5,6 +5,7 @@
 1. 补充README及演示gif  
 2. 删除CHANGELOG的合并冲突标记  
 3. 修正logo比例
+4. 修正style.css样式
 
 # 1.0.1
 
