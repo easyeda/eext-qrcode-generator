@@ -216,12 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	function CloseWindow() {
 		eda.sys_IFrame.closeIFrame('');
 	}
-	/* ================================定时器测试函数================================================================== */
-	async function test() {
-
-	}
-
-
 
 
 	// 事件绑定
@@ -264,8 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			const NoColorImg = eda.pcb_PrimitiveImage.create(Point.x, Point.y, edaImage, EPCB_LayerId
 				.TOP_SILKSCREEN,
 				width, height, 0, false, false); // 在画布上创建图像\
-				console.log((await NoColorImg).getState_PrimitiveId());
-				eda.pcb_PrimitiveImage.modify("e10",0,0, EPCB_LayerId.TOP_SILKSCREEN,100,100,0,false,false);
+				//console.log((await NoColorImg).getState_PrimitiveId());
 		} else {
 			console.log('鼠标意外事件');
 		}
@@ -275,7 +268,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 });
-
-// //参数 名称：固定参数不要动，类型：固定参数不要动，起始位置x，起始位置y，终点位置x，终点位置y，宽度，是否锁定：固定参数不要动
-// eda.pcb_PrimitiveLine.create("", EPCB_LayerId.TOP_SILKSCREEN,0,0,0,100,20,false);
-// console.log(eda.pcb_PrimitiveLine.create("", EPCB_LayerId.TOP_SILKSCREEN,0,0,0,100,20,false).eda)
