@@ -3,7 +3,7 @@
 	"uuid": "dc575b025706476cabdfa7c45ec24bfb",
 	"displayName": "二维码生成器",
 	"description": "二维码/条形码丝印生成工具",
-	"version": "1.1.1",
+	"version": "1.10.1",
 	"publisher": "JLCEDA <support@lceda.cn>",
 	"engines": {
 		"eda": "^2.2.40"
@@ -14,7 +14,7 @@
 		"url": "https://github.com/easyeda/eext-qrcode-generator.git"
 	},
 	"categories": "PCB",
-	"keywords": ["PCB","二维码"],
+	"keywords": ["PCB", "二维码"],
 	"images": {
 		"logo": "./images/logo.png"
 	},
@@ -26,41 +26,35 @@
 	"headerMenus": {
 		"home": [],
 		"sch": [],
-		"pcb": [
-			{
-				"id": "QRCode",
-				"title": "二维码生成",
-				"menuItems": [
-					{
-						"id": "CreateQRCode",
-						"title": "生成二维码/条形码...",
-						"registerFn": "CreateQRCode"
-					},
-					{
-						"id": "ImportImg",
-						"title": "从图片导入...",
-						"registerFn": "ImportImg"
-					}
-				]
-			}
-		],
-		"footprint": [
-			{
-				"id": "QRCode",
-				"title": "二维码生成",
-				"menuItems": [
-					{
-						"id": "CreateQRCode",
-						"title": "生成二维码/条形码...",
-						"registerFn": "CreateQRCode"
-					},
-					{
-						"id": "ImportImg",
-						"title": "从图片导入...",
-						"registerFn": "ImportImg"
-					}
-				]
-			}
-		]
+		"pcb": [{
+			"id": "QRCode",
+			"title": "二维码生成",
+			"menuItems": [{
+					"id": "CreateQRCode",
+					"title": "生成二维码/条形码...",
+					"registerFn": "CreateQRCode"
+				},
+				{
+					"id": "ImportImg",
+					"title": "从图片导入...",
+					"registerFn": "ImportImg"
+				}
+			]
+		}],
+		"footprint": [{
+			"id": "QRCode",
+			"title": "二维码生成",
+			"menuItems": [{
+					"id": "CreateQRCode",
+					"title": "生成二维码/条形码...",
+					"registerFn": "CreateQRCode"
+				},
+				{
+					"id": "ImportImg",
+					"title": "从图片导入...",
+					"registerFn": "ImportImg"
+				}
+			]
+		}]
 	}
 }

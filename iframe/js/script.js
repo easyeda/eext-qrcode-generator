@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	const Downolad_Button = document.getElementById('download-btn'); // 通用下载按钮
 	const Create_EDA = document.getElementById('Create-btn'); // 通用放置按钮
 	const Back_Button = document.getElementById('Back-btn'); //取消按钮
+	const Save_Button = document.getElementById('Save-btn'); //保存到历史
+	const Import_Button = document.getElementById('history-btn'); //从历史导入
 	// 输出区域
 	const Result = document.getElementById('qr-result'); // 二维码输出区域
 	const DownloadSection = document.getElementById('download-section'); // 下载按钮的父控件
@@ -217,6 +219,44 @@ document.addEventListener('DOMContentLoaded', () => {
 		eda.sys_IFrame.closeIFrame('');
 	}
 
+	/* ================================保存图像到历史记录================================================================== */
+	async function SaveHistory() {
+		if (!Base64 || !TextContent.value.trim()) {
+			showMessage('无图像数据可保存');
+			return;
+		}
+
+		const dataToSave = {
+			type: ImgType === 0 ? 'qrcode' : 'barcode', // 0: 二维码, 1: 条形码
+			content: TextContent.value.trim(), // 内容
+			size: parseInt(ImgSize.value, 10), // 尺寸
+			color: ColorFlag.checked ? Color.value : '#000000', // 颜色
+			timestamp: new Date().toISOString(), // 时间戳
+			//imageData: Base64, // 图像 base64 数据
+			useColorSilk: ColorFlag.checked, // 是否使用彩色丝印
+			fromCoordinates: CreateType.checked // 是否从坐标生成
+		};
+
+		try {
+			let length = await eda.sys_Storage.getExtensionAllUserConfigs();
+			let qrlength = Object.keys(length).filter(key => key.includes('qrcode')).length;
+			let brlength = Object.keys(length).filter(key => key.includes('barcode')).length;
+			console.log(length);
+			// 使用扩展存储 API 保存数据
+			await eda.sys_Storage.setExtensionUserConfig(ImgType === 0 ? 'qrcode' + (qrlength + 1) :
+				'barcode' + (brlength + 1), dataToSave);
+			showMessage('历史记录已保存');
+			console.log(await eda.sys_Storage.getExtensionAllUserConfigs());
+		} catch (error) {
+			console.error('保存历史记录失败:', error);
+			showMessage('保存失败: ' + error.message);
+		}
+	}
+	/* ================================从历史记录导入图像================================================================== */
+	async function Import() {
+		eda.sys_IFrame.closeIFrame('');
+		await eda.sys_IFrame.openIFrame("/iframe/History.html", 600,600,"history");
+	}
 
 	// 事件绑定
 	CreateQr_Button.addEventListener('click', Create_QRCode); // 生成二维码
@@ -224,7 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	Downolad_Button.addEventListener('click', Download); // 下载生成的图像
 	Create_EDA.addEventListener('click', CreateImg); // 在画布上生成图像
 	Back_Button.addEventListener('click', CloseWindow); //关闭窗口
-
+	Save_Button.addEventListener('click', SaveHistory); //保存到历史
+	Import_Button.addEventListener('click', Import); //从历史导入
 	// 监听页面获得焦点
 	window.onfocus = async function() {
 		// console.log('网页已获得焦点');
@@ -258,13 +299,10 @@ document.addEventListener('DOMContentLoaded', () => {
 			const NoColorImg = eda.pcb_PrimitiveImage.create(Point.x, Point.y, edaImage, EPCB_LayerId
 				.TOP_SILKSCREEN,
 				width, height, 0, false, false); // 在画布上创建图像\
-				//console.log((await NoColorImg).getState_PrimitiveId());
+			//console.log((await NoColorImg).getState_PrimitiveId());
 		} else {
 			console.log('鼠标意外事件');
 		}
 		Create_Type = 0;
 	};
-
-
-
 });
