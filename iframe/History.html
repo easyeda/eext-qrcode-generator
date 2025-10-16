@@ -1,717 +1,540 @@
 <!doctype html>
 <html lang="zh-CN">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>历史记录</title>
-		<script src="/iframe/js/JsBarcode.all.min.js"></script>
-		<script src="/iframe/js/qrcode.min.js"></script>
-		<style>
-			/* 基础容器 */
-			.history-container {
-				position: relative;
-				width: 100%;
-				max-width: 800px;
-				margin: 0 auto;
-				padding: 0;
-				box-sizing: border-box;
-				height: 100vh;
-				/* 占满视口 */
-				overflow: hidden;
-				/* 禁用默认滚动 */
-			}
-
-			/* 吸顶标题区域 */
-			.history-header-fixed {
-				position: sticky;
-				top: 0;
-				left: 0;
-				width: 100%;
-				background: white;
-				padding: 20px;
-				text-align: center;
-				z-index: 100;
-				box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-				box-sizing: border-box;
-			}
-
-			.history-header h2 {
-				margin: 0;
-				font-size: 24px;
-				color: #333;
-			}
-
-			/* 可滚动内容区 */
-			.history-scrollable {
-				width: 100%;
-				height: calc(100vh - 140px);
-				/* 减去 header + footer 高度 */
-				overflow-y: auto;
-				padding: 20px;
-				box-sizing: border-box;
-
-				/* 隐藏滚动条 - Chrome/Safari/Edge */
-				scrollbar-width: none;
-				/* Firefox */
-				-ms-overflow-style: none;
-				/* IE & Edge */
-			}
-
-			.history-scrollable::-webkit-scrollbar {
-				display: none;
-				/* Webkit 浏览器 */
-			}
-
-			/* 历史列表网格 */
-			.history-list {
-				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-				gap: 20px;
-			}
-
-			/* 历史项样式 */
-			.history-item {
-				border: 1px solid #ddd;
-				border-radius: 8px;
-				padding: 15px;
-				background: #fff;
-				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-				transition: transform 0.2s;
-				cursor: pointer;
-				position: relative;
-			}
-
-			.history-item:hover {
-				transform: translateY(-2px);
-				box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-			}
-
-			/* 删除按钮 */
-			.delete-btn {
-				position: absolute;
-				top: 8px;
-				right: 8px;
-				width: 24px;
-				height: 24px;
-				border-radius: 50%;
-				background: #ff4d4f;
-				color: white;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				font-size: 14px;
-				cursor: pointer;
-				z-index: 10;
-				opacity: 0;
-				transition: opacity 0.2s;
-			}
-
-			.history-item:hover .delete-btn {
-				opacity: 1;
-			}
-
-			.delete-btn:hover {
-				background: #d9363e;
-			}
-
-			.history-image-container {
-				width: 100%;
-				height: 150px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				background: #f9f9f9;
-				border-radius: 4px;
-				margin-bottom: 10px;
-				overflow: hidden;
-			}
-
-			.history-canvas {
-				max-width: 100%;
-				max-height: 100%;
-			}
-
-			.history-content {
-				font-size: 14px;
-				color: #333;
-				margin-bottom: 8px;
-				white-space: nowrap;
-				overflow: hidden;
-				text-overflow: ellipsis;
-			}
-
-			.history-meta {
-				font-size: 12px;
-				color: #666;
-				margin-bottom: 5px;
-			}
-
-			.history-type {
-				display: inline-block;
-				padding: 2px 8px;
-				border-radius: 12px;
-				font-size: 12px;
-				background: #e0e0e0;
-				color: #333;
-			}
-
-			.qrcode-tag {
-				background: #e3f2fd;
-				color: #1976d2;
-			}
-
-			.barcode-tag {
-				background: #f1f8e9;
-				color: #388e3c;
-			}
-
-			.history-size {
-				font-size: 12px;
-				color: #999;
-			}
-
-			.empty-history {
-				text-align: center;
-				padding: 40px;
-				color: #999;
-			}
-
-			/* 吸底按钮容器 */
-			.bottom-buttons-container {
-				position: fixed;
-				bottom: 20px;
-				left: 50%;
-				transform: translateX(-50%);
-				width: 90%;
-				max-width: 300px;
-				display: flex;
-				gap: 10px;
-				z-index: 200;
-			}
-
-			/* 按钮通用样式 */
-			.action-button {
-				padding: 12px 0;
-				border: none;
-				border-radius: 6px;
-				font-size: 16px;
-				cursor: pointer;
-				box-shadow: 0 4px 12px rgba(30, 144, 255, 0.3);
-				transition: background 0.2s, transform 0.2s;
-				flex: 1;
-			}
-
-			/* 返回按钮 */
-			.back-button {
-				background: #1e90ff;
-				color: white;
-			}
-
-			.back-button:hover {
-				background: #0066cc;
-				transform: translateY(-2px);
-			}
-
-			/* 清空按钮 */
-			.clear-button {
-				background: #ff4d4f;
-				color: white;
-			}
-
-			.clear-button:hover {
-				background: #d9363e;
-				transform: translateY(-2px);
-			}
-
-			/* 消息提示样式 */
-			.message {
-				position: fixed;
-				top: 20px;
-				left: 50%;
-				transform: translateX(-50%);
-				background-color: #1e90ff;
-				color: white;
-				padding: 12px 24px;
-				border-radius: 6px;
-				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-				z-index: 1000;
-				animation: fadeInOut 3s forwards;
-			}
-
-			@keyframes fadeInOut {
-				0% {
-					opacity: 0;
-					transform: translateX(-50%) translateY(-20px);
-				}
-
-				20% {
-					opacity: 1;
-					transform: translateX(-50%) translateY(0);
-				}
-
-				80% {
-					opacity: 1;
-					transform: translateX(-50%) translateY(0);
-				}
-
-				100% {
-					opacity: 0;
-					transform: translateX(-50%) translateY(-20px);
-				}
-			}
-
-			/* 确认对话框样式 */
-			.confirm-dialog {
-				position: fixed;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 100%;
-				background: rgba(0, 0, 0, 0.5);
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				z-index: 1001;
-			}
-
-			.confirm-content {
-				background: white;
-				padding: 20px;
-				border-radius: 8px;
-				text-align: center;
-				max-width: 300px;
-			}
-
-			.confirm-title {
-				font-size: 18px;
-				font-weight: bold;
-				margin-bottom: 15px;
-				color: #333;
-			}
-
-			.confirm-buttons {
-				display: flex;
-				justify-content: space-between;
-				gap: 10px;
-			}
-
-			.confirm-btn {
-				padding: 8px 16px;
-				border: none;
-				border-radius: 4px;
-				cursor: pointer;
-				flex: 1;
-			}
-
-			.confirm-cancel {
-				background: #f0f0f0;
-				color: #333;
-			}
-
-			.confirm-confirm {
-				background: #ff4d4f;
-				color: white;
-			}
-		</style>
-	</head>
-	<body>
-		<div class="history-container">
-			<!-- 吸顶标题 -->
-			<div class="history-header-fixed">
-				<div class="history-header">
-					<h2>历史记录</h2>
-				</div>
-			</div>
-
-			<!-- 可滚动内容区 -->
-			<div class="history-scrollable">
-				<div id="history-list" class="history-list">
-					<div class="empty-history">加载中...</div>
-				</div>
-			</div>
-
-			<!-- 吸底按钮容器 -->
-			<div class="bottom-buttons-container">
-				<button id="clear-btn" class="action-button clear-button">清空历史</button>
-				<button id="back-btn" class="action-button back-button">返回</button>
-			</div>
-		</div>
-
-		<script>
-			let CreateFlag = 0; //是否生成的标志位
-			let base64Data = ''; //存储图像数据
-			let type = ''; //图像类型
-			let size = ''; //图像尺寸
-			let useColorSilk = ''; //是否使用彩色丝印
-
-			document.addEventListener('DOMContentLoaded', () => {
-				const HistoryList = document.getElementById('history-list');
-				const BackButton = document.getElementById('back-btn');
-				const ClearButton = document.getElementById('clear-btn');
-
-				// 显示消息函数（已内联样式，无需动态插入）
-				function showMessage(message) {
-					const messageElement = document.createElement('div');
-					messageElement.className = 'message';
-					messageElement.textContent = message;
-					document.body.appendChild(messageElement);
-
-					setTimeout(() => {
-						if (document.body.contains(messageElement)) {
-							document.body.removeChild(messageElement);
-						}
-					}, 3000);
-				}
-
-				// 显示确认对话框
-				function showConfirmDialog(title, onConfirm) {
-					const dialog = document.createElement('div');
-					dialog.className = 'confirm-dialog';
-					
-					const content = document.createElement('div');
-					content.className = 'confirm-content';
-					
-					const titleElement = document.createElement('div');
-					titleElement.className = 'confirm-title';
-					titleElement.textContent = title;
-					content.appendChild(titleElement);
-					
-					const buttonsContainer = document.createElement('div');
-					buttonsContainer.className = 'confirm-buttons';
-					
-					const cancelButton = document.createElement('button');
-					cancelButton.className = 'confirm-btn confirm-cancel';
-					cancelButton.textContent = '取消';
-					cancelButton.addEventListener('click', () => {
-						document.body.removeChild(dialog);
-					});
-					
-					const confirmButton = document.createElement('button');
-					confirmButton.className = 'confirm-btn confirm-confirm';
-					confirmButton.textContent = '确定';
-					confirmButton.addEventListener('click', () => {
-						onConfirm();
-						document.body.removeChild(dialog);
-					});
-					
-					buttonsContainer.appendChild(cancelButton);
-					buttonsContainer.appendChild(confirmButton);
-					content.appendChild(buttonsContainer);
-					dialog.appendChild(content);
-					document.body.appendChild(dialog);
-				}
-
-				// 生成二维码
-				function generateQRCode(content, color = '#000000') {
-					return new Promise((resolve) => {
-						const canvas = document.createElement('canvas');
-						QRCode.toCanvas(
-							canvas,
-							content, {
-								width: 150,
-								margin: 2,
-								correctLevel: 3,
-								color: {
-									dark: color,
-									light: '#ffffff',
-								},
-							},
-							(error) => {
-								if (error) {
-									console.error('二维码生成错误:', error);
-									resolve(null);
-								} else {
-									resolve(canvas);
-								}
-							}
-						);
-					});
-				}
-
-				// 生成条形码
-				function generateBarcode(content, color = '#000000') {
-					try {
-						const canvas = document.createElement('canvas');
-						JsBarcode(canvas, content, {
-							lineColor: color,
-							format: 'CODE128',
-							width: 2,
-							height: 100,
-							displayValue: false,
-							margin: 10
-						});
-						return Promise.resolve(canvas);
-					} catch (error) {
-						console.error('条形码生成错误:', error);
-						return Promise.resolve(null);
-					}
-				}
-
-				// 根据历史记录项生成对应的图像
-				async function generateImageFromHistory(item) {
-					const color = item.useColorSilk ? item.color : '#000000';
-
-					if (item.type === 'qrcode') {
-						return await generateQRCode(item.content, color);
-					} else {
-						return await generateBarcode(item.content, color);
-					}
-				}
-
-				// 删除单个历史记录
-				async function deleteHistoryItem(key) {
-					try {
-						// 第一步：将配置设为 null
-						await eda.sys_Storage.setExtensionUserConfig(key, null);
-						
-						// 第二步：使用 deleteExtensionUserConfig 同步删除数据空间里的配置
-						if (typeof eda.sys_Storage.deleteExtensionUserConfig === 'function') {
-							await eda.sys_Storage.deleteExtensionUserConfig(key);
-						}
-						
-						return true;
-					} catch (error) {
-						console.error('删除历史记录失败:', error);
-						throw error;
-					}
-				}
-
-				// 加载历史记录
-				async function loadHistory() {
-					try {
-						const allConfigs = await eda.sys_Storage.getExtensionAllUserConfigs();
-						const historyData = Object.entries(allConfigs)
-							.filter(([key]) => key.includes('qrcode') || key.includes('barcode'))
-							.map(([key, value]) => ({
-								id: key,
-								...value
-							}))
-							.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-						await renderHistoryList(historyData);
-					} catch (error) {
-						console.error('加载历史记录失败:', error);
-						HistoryList.innerHTML = '<div class="empty-history">加载历史记录失败</div>';
-						showMessage('加载历史记录失败');
-					}
-				}
-
-				// 渲染历史记录列表
-				async function renderHistoryList(data) {
-					if (data.length === 0) {
-						HistoryList.innerHTML = '<div class="empty-history">暂无历史记录</div>';
-						return;
-					}
-
-					HistoryList.innerHTML = '';
-
-					for (const item of data) {
-						const historyItem = document.createElement('div');
-						historyItem.className = 'history-item';
-						historyItem.dataset.id = item.id;
-
-						// 添加删除按钮
-						const deleteBtn = document.createElement('div');
-						deleteBtn.className = 'delete-btn';
-						deleteBtn.innerHTML = '×';
-						deleteBtn.addEventListener('click', (e) => {
-							e.stopPropagation(); // 阻止事件冒泡
-							showConfirmDialog('确定要删除这条记录吗？', async () => {
-								try {
-									await deleteHistoryItem(item.id);
-									showMessage('删除成功');
-									loadHistory(); // 重新加载历史记录
-								} catch (error) {
-									console.error('删除失败:', error);
-									showMessage('删除失败，请重试');
-								}
-							});
-						});
-						historyItem.appendChild(deleteBtn);
-
-						const imageContainer = document.createElement('div');
-						imageContainer.className = 'history-image-container';
-
-						const canvas = await generateImageFromHistory(item);
-						if (canvas) {
-							canvas.className = 'history-canvas';
-							imageContainer.appendChild(canvas);
-						} else {
-							imageContainer.innerHTML = '<div style="color:#999;">图像生成失败</div>';
-						}
-
-						historyItem.appendChild(imageContainer);
-
-						const contentDiv = document.createElement('div');
-						contentDiv.className = 'history-content';
-						contentDiv.title = item.content;
-						contentDiv.textContent = item.content;
-						historyItem.appendChild(contentDiv);
-
-						const metaDiv1 = document.createElement('div');
-						metaDiv1.className = 'history-meta';
-						metaDiv1.innerHTML = `
-							<span class="history-type ${item.type === 'qrcode' ? 'qrcode-tag' : 'barcode-tag'}">
-								${item.type === 'qrcode' ? '二维码' : '条形码'}
-							</span>
-						`;
-						historyItem.appendChild(metaDiv1);
-
-						const metaDiv2 = document.createElement('div');
-						metaDiv2.className = 'history-meta';
-						metaDiv2.textContent =
-							`尺寸: ${item.size}mm | ${new Date(item.timestamp).toLocaleDateString()}`;
-						historyItem.appendChild(metaDiv2);
-
-						const sizeDiv = document.createElement('div');
-						sizeDiv.className = 'history-size';
-						sizeDiv.textContent =
-							`彩色丝印: ${item.useColorSilk ? '是' : '否'}`;
-						historyItem.appendChild(sizeDiv);
-
-						historyItem.addEventListener('click', async () => {
-							CreateFlag = 1;
-							showMessage("请在画布上点击以生成丝印");
-							console.log('历史对象:', item);
-							size = item.size;
-							type = item.type;
-							useColorSilk = item.useColorSilk;
-
-							const existingCanvas = historyItem.querySelector('.history-canvas');
-							if (existingCanvas && typeof existingCanvas.toDataURL === 'function') {
-								base64Data = existingCanvas.toDataURL('image/png');
-								console.log('图像 Base64 数据:', base64Data);
-							} else {
-								console.warn('Canvas 不存在，尝试重新生成...');
-								const color = item.useColorSilk ? item.color : '#000000';
-								let canvas = null;
-								if (item.type === 'qrcode') {
-									canvas = await generateQRCode(item.content, color);
-								} else {
-									canvas = await generateBarcode(item.content, color);
-								}
-								if (canvas) {
-									base64Data = canvas.toDataURL('image/png');
-									console.log('图像 Base64 数据（重新生成）:', base64Data);
-								} else {
-									console.error('图像生成失败，无法获取 base64');
-								}
-							}
-						});
-
-						HistoryList.appendChild(historyItem);
-					}
-				}
-
-				// 监听页面失去焦点（放置图像）
-				window.onblur = async function() {
-					if (!CreateFlag) return;
-
-					let height = parseFloat(size);
-					let width = parseFloat(size);
-
-					const Point = await eda.pcb_SelectControl.getCurrentMousePosition();
-
-					if (type === "barcode") {
-						width *= 3;
-					}
-
-					if (useColorSilk) {
-						eda.pcb_PrimitiveObject.create(
-							EPCB_LayerId.TOP_SILKSCREEN,
-							Point.x,
-							Point.y,
-							base64Data,
-							width,
-							height,
-							0,
-							false,
-							'img',
-							false
-						);
-					} else {
-						const blob = base64ToBlob(base64Data, 'image/png');
-						const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(
-							blob, width, height, 0.5, 0.5, 0, 0, true, false
-						);
-						eda.pcb_PrimitiveImage.create(
-							Point.x,
-							Point.y,
-							edaImage,
-							EPCB_LayerId.TOP_SILKSCREEN,
-							width,
-							height,
-							0,
-							false,
-							false
-						);
-					}
-
-					CreateFlag = 0;
-					showMessage("图像已生成");
-				};
-
-				/* ================================base64转blob================================================================== */
-				function base64ToBlob(base64, contentType) {
-					const base64Message = base64.split(',')[1];
-					const byteCharacters = atob(base64Message);
-					let byteArrays = [];
-					for (let i = 0; i < byteCharacters.length; i++) {
-						byteArrays.push(byteCharacters.charCodeAt(i));
-					}
-					const blob = new Blob([new Uint8Array(byteArrays)], {
-						type: contentType,
-					});
-					console.log('生成的 Blob:', blob);
-					return blob;
-				}
-
-				// 关闭窗口
-				function closeWindow() {
-					eda.sys_IFrame.closeIFrame('');
-					eda.sys_IFrame.openIFrame('/iframe/index.html', 600, 600, 'bonding_pad');
-				}
-
-				// 清空所有历史记录
-				async function clearAllHistory() {
-					showConfirmDialog('确定要清空所有历史记录吗？此操作不可恢复！', async () => {
-						try {
-							const allConfigs = await eda.sys_Storage.getExtensionAllUserConfigs();
-							const historyKeys = Object.keys(allConfigs).filter(key => 
-								key.includes('qrcode') || key.includes('barcode')
-							);
-							
-							// 逐个删除历史记录
-							let successCount = 0;
-							for (const key of historyKeys) {
-								try {
-									await deleteHistoryItem(key);
-									successCount++;
-								} catch (error) {
-									console.error(`删除 ${key} 失败:`, error);
-								}
-							}
-							
-							if (successCount > 0) {
-								showMessage(`成功清空 ${successCount} 条记录`);
-								loadHistory(); // 重新加载历史记录
-							} else {
-								throw new Error('清空历史记录失败');
-							}
-						} catch (error) {
-							console.error('清空历史记录失败:', error);
-							showMessage('清空失败，请重试');
-						}
-					});
-				}
-
-				// 事件绑定
-				BackButton.addEventListener('click', closeWindow);
-				ClearButton.addEventListener('click', clearAllHistory);
-
-				// 初始化加载历史记录
-				loadHistory();
-			});
-		</script>
-	</body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>历史记录</title>
+  <script src="/iframe/js/JsBarcode.all.min.js"></script>
+  <script src="/iframe/js/qrcode.min.js"></script>
+  <style>
+    /* === iframe 严丝合缝 === */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: "Microsoft YaHei", sans-serif;
+      background: #f8f9fa;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: white;
+    }
+
+    .table-wrapper {
+      flex: 1;
+      overflow: auto;
+      padding: 0 16px 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0;
+      border: 1px solid #dee2e6;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #e9ecef;
+      border: 1px solid #dee2e6;
+      font-weight: 600;
+      color: #212529;
+      font-size: 14px;
+      padding: 8px 12px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .filter-icon {
+      margin-left: 6px;
+      cursor: pointer;
+      color: #6c757d;
+      font-size: 14px;
+    }
+
+    .filter-icon:hover {
+      color: #495057;
+    }
+
+    .filter-input {
+      width: 100%;
+      padding: 4px 8px;
+      border: 1px solid #ced4da;
+      border-radius: 3px;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+
+    .filter-select {
+      width: 100%;
+      padding: 4px 8px;
+      border: 1px solid #ced4da;
+      border-radius: 3px;
+      font-size: 13px;
+      background: white;
+    }
+
+    td {
+      padding: 8px 12px;
+      border: 1px solid #dee2e6;
+      font-size: 14px;
+      vertical-align: middle;
+      color: #0d6efd;
+    }
+
+    tr:hover td {
+      background-color: #f9f9f9;
+    }
+
+    .type-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .qrcode-tag {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .barcode-tag {
+      background: #f1f8e9;
+      color: #388e3c;
+    }
+
+    .content-cell {
+      font-family: monospace;
+      word-break: break-all;
+    }
+
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #c82333;
+    }
+
+    .actions {
+      padding: 6px 16px;
+      text-align: right;
+      flex-shrink: 0;
+      border-top: 1px solid #eee;
+      background: white;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      margin-left: 8px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #0d6efd;
+      border: 1px solid #0d6efd;
+    }
+
+    .btn-outline:hover {
+      background: #f0f8ff;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+      border: 1px solid #dc3545;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .empty-row td {
+      text-align: center;
+      color: #6c757d;
+      padding: 20px 0;
+    }
+
+    .filter-row {
+      background: #fff;
+    }
+
+    .filter-row td {
+      padding: 6px 12px 4px;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>
+              类型
+              <span class="filter-icon" id="toggle-filter">🔍</span>
+            </th>
+            <th>尺寸 (mm)</th>
+            <th>
+              内容
+              <!-- 可保留图标，但共用同一个 toggle -->
+              <span class="filter-icon" id="toggle-filter-2">🔍</span>
+            </th>
+            <th>
+              彩色丝印
+              <span class="filter-icon" id="toggle-filter-3">🔍</span>
+            </th>
+            <th>操作</th>
+          </tr>
+          <!-- 过滤行（初始隐藏） -->
+          <tr class="filter-row" id="filter-row" style="display: none;">
+            <td><input type="text" class="filter-input" id="filter-type" placeholder="二维码/条形码"></td>
+            <td></td>
+            <td><input type="text" class="filter-input" id="filter-content" placeholder="关键词"></td>
+            <td>
+              <select class="filter-select" id="filter-color">
+                <option value="">全部</option>
+                <option value="是">是</option>
+                <option value="否">否</option>
+              </select>
+            </td>
+            <td></td>
+          </tr>
+        </thead>
+        <tbody id="history-list">
+          <tr class="empty-row">
+            <td colspan="5">加载中...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="actions">
+      <button id="back-btn" class="btn btn-outline">关闭</button>
+      <button id="clear-btn" class="btn btn-danger">清空全部</button>
+    </div>
+  </div>
+
+  <script>
+    let CreateFlag = 0;
+    let base64Data = '';
+    let type = '';
+    let size = '';
+    let useColorSilk = '';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const HistoryList = document.getElementById('history-list');
+      const BackButton = document.getElementById('back-btn');
+      const ClearButton = document.getElementById('clear-btn');
+      const filterRow = document.getElementById('filter-row');
+      const filterTypeInput = document.getElementById('filter-type');
+      const filterContentInput = document.getElementById('filter-content');
+      const filterColorSelect = document.getElementById('filter-color');
+
+      // 所有图标都控制同一行
+      document.querySelectorAll('.filter-icon').forEach(icon => {
+        icon.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (filterRow.style.display === 'none' || !filterRow.style.display) {
+            filterRow.style.display = '';
+            // 聚焦到第一个输入框（可选）
+            filterTypeInput.focus();
+          } else {
+            filterRow.style.display = 'none';
+          }
+        });
+      });
+
+      // 实时过滤
+      function setupFilterListeners() {
+        [filterTypeInput, filterContentInput].forEach(input => {
+          input.addEventListener('input', applyFilters);
+        });
+        filterColorSelect.addEventListener('change', applyFilters);
+      }
+
+      function applyFilters() {
+        const typeQuery = filterTypeInput.value.trim().toLowerCase();
+        const contentQuery = filterContentInput.value.trim().toLowerCase();
+        const colorQuery = filterColorSelect.value; // "是" / "否" / ""
+
+        const rows = HistoryList.querySelectorAll('tr:not(.empty-row)');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+          const typeText = row.querySelector('.type-tag')?.textContent.trim().toLowerCase() || '';
+          const contentText = row.querySelector('.content-cell')?.textContent.trim().toLowerCase() || '';
+          const colorText = row.querySelector('td:nth-child(4)')?.dataset.color || '';
+
+          const typeMatch = typeQuery === '' || typeText.includes(typeQuery);
+          const contentMatch = contentQuery === '' || contentText.includes(contentQuery);
+          const colorMatch = colorQuery === '' || colorText === colorQuery;
+
+          if (typeMatch && contentMatch && colorMatch) {
+            row.style.display = '';
+            visibleCount++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        const emptyRow = HistoryList.querySelector('.empty-row');
+        if (visibleCount === 0 && rows.length > 0) {
+          if (!emptyRow) {
+            const tr = document.createElement('tr');
+            tr.className = 'empty-row';
+            const td = document.createElement('td');
+            td.colSpan = 5;
+            td.textContent = '无匹配记录';
+            td.style.textAlign = 'center';
+            td.style.color = '#6c757d';
+            td.style.padding = '20px 0';
+            tr.appendChild(td);
+            HistoryList.appendChild(tr);
+          }
+        } else if (emptyRow) {
+          emptyRow.remove();
+        }
+      }
+
+      function showMessage(text) {
+        const el = document.createElement('div');
+        el.style.cssText = `
+          position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+          background: #198754; color: white; padding: 8px 16px;
+          border-radius: 4px; z-index: 1000; font-size: 14px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          animation: fadeOut 3s forwards;
+        `;
+        el.textContent = text;
+        document.body.appendChild(el);
+        setTimeout(() => el.parentNode?.removeChild(el), 3000);
+      }
+
+      function showConfirmDialog(title, onConfirm) {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5); display: flex; align-items: center;
+          justify-content: center; z-index: 2000;
+        `;
+        overlay.innerHTML = `
+          <div style="background: white; padding: 20px; border-radius: 8px; max-width: 300px; text-align: center; font-size: 15px;">
+            <div style="margin-bottom: 16px; font-weight: 600;">${title}</div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+              <button style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">取消</button>
+              <button style="flex:1; padding:6px; background:#dc3545; color:white; border:none; border-radius:4px;">确定</button>
+            </div>
+          </div>
+        `;
+        const cancel = overlay.querySelector('button');
+        const confirm = overlay.querySelector('button:last-child');
+        cancel.onclick = () => document.body.removeChild(overlay);
+        confirm.onclick = () => {
+          onConfirm();
+          document.body.removeChild(overlay);
+        };
+        document.body.appendChild(overlay);
+      }
+
+      function generateQRCode(content, color = '#000000') {
+        return new Promise(resolve => {
+          const canvas = document.createElement('canvas');
+          QRCode.toCanvas(canvas, content, {
+            width: 100, margin: 2, correctLevel: 3,
+            color: { dark: color, light: '#ffffff' }
+          }, err => resolve(err ? null : canvas));
+        });
+      }
+
+      function generateBarcode(content, color = '#000000') {
+        try {
+          const canvas = document.createElement('canvas');
+          JsBarcode(canvas, content, {
+            lineColor: color, format: 'CODE128',
+            width: 2, height: 80, displayValue: false, margin: 5
+          });
+          return Promise.resolve(canvas);
+        } catch (e) {
+          console.error('条形码生成错误:', e);
+          return Promise.resolve(null);
+        }
+      }
+
+      async function deleteHistoryItem(key) {
+        await eda.sys_Storage.setExtensionUserConfig(key, null);
+        if (typeof eda.sys_Storage.deleteExtensionUserConfig === 'function') {
+          await eda.sys_Storage.deleteExtensionUserConfig(key);
+        }
+      }
+
+      async function loadHistory() {
+        try {
+          const all = await eda.sys_Storage.getExtensionAllUserConfigs();
+          const data = Object.entries(all)
+            .filter(([k]) => k.includes('qrcode') || k.includes('barcode'))
+            .map(([k, v]) => ({ id: k, ...v }))
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+          renderHistoryList(data);
+        } catch (e) {
+          console.error('加载失败:', e);
+          HistoryList.innerHTML = `<tr class="empty-row"><td colspan="5">加载失败</td></tr>`;
+          showMessage('加载失败');
+        }
+      }
+
+      function renderHistoryList(data) {
+        if (!data.length) {
+          HistoryList.innerHTML = `<tr class="empty-row"><td colspan="5">暂无历史记录</td></tr>`;
+          return;
+        }
+
+        HistoryList.innerHTML = '';
+        data.forEach(item => {
+          const row = document.createElement('tr');
+          row.dataset.id = item.id;
+
+          const typeCell = document.createElement('td');
+          const tag = document.createElement('span');
+          tag.className = `type-tag ${item.type === 'qrcode' ? 'qrcode-tag' : 'barcode-tag'}`;
+          tag.textContent = item.type === 'qrcode' ? '二维码' : '条形码';
+          typeCell.appendChild(tag);
+
+          const sizeCell = document.createElement('td');
+          sizeCell.textContent = item.size;
+
+          const contentCell = document.createElement('td');
+          contentCell.className = 'content-cell';
+          contentCell.textContent = item.content;
+          contentCell.title = item.content;
+
+          const colorCell = document.createElement('td');
+          colorCell.textContent = item.useColorSilk ? '是' : '否';
+          colorCell.dataset.color = item.useColorSilk ? '是' : '否';
+
+          const opCell = document.createElement('td');
+          const delBtn = document.createElement('button');
+          delBtn.className = 'delete-btn';
+          delBtn.textContent = '删除';
+          delBtn.onclick = (e) => {
+            e.stopPropagation();
+            showConfirmDialog('确定要删除这条记录吗？', async () => {
+              try {
+                await deleteHistoryItem(item.id);
+                showMessage('删除成功');
+                loadHistory();
+                // 重置过滤器
+                filterTypeInput.value = '';
+                filterContentInput.value = '';
+                filterColorSelect.value = '';
+                applyFilters();
+              } catch (err) {
+                console.error('删除失败:', err);
+                showMessage('删除失败');
+              }
+            });
+          };
+          opCell.appendChild(delBtn);
+
+          row.addEventListener('click', async () => {
+            CreateFlag = 1;
+            showMessage("请在画布上点击以生成丝印");
+            size = item.size;
+            type = item.type;
+            useColorSilk = item.useColorSilk;
+
+            const color = item.useColorSilk ? item.color : '#000000';
+            let canvas = item.type === 'qrcode'
+              ? await generateQRCode(item.content, color)
+              : await generateBarcode(item.content, color);
+            base64Data = canvas ? canvas.toDataURL('image/png') : '';
+          });
+
+          row.append(typeCell, sizeCell, contentCell, colorCell, opCell);
+          HistoryList.appendChild(row);
+        });
+        applyFilters();
+      }
+
+      window.onblur = async () => {
+        if (!CreateFlag) return;
+        let h = parseFloat(size), w = parseFloat(size);
+        const pt = await eda.pcb_SelectControl.getCurrentMousePosition();
+        if (type === "barcode") w *= 3;
+
+        if (useColorSilk) {
+          eda.pcb_PrimitiveObject.create(
+            EPCB_LayerId.TOP_SILKSCREEN, pt.x, pt.y, base64Data, w, h, 0, false, 'img', false
+          );
+        } else {
+          const blob = base64ToBlob(base64Data, 'image/png');
+          const img = await eda.pcb_MathPolygon.convertImageToComplexPolygon(blob, w, h, 0.5, 0.5, 0, 0, true, false);
+          eda.pcb_PrimitiveImage.create(pt.x, pt.y, img, EPCB_LayerId.TOP_SILKSCREEN, w, h, 0, false, false);
+        }
+        CreateFlag = 0;
+        showMessage("图像已生成");
+      };
+
+      function base64ToBlob(b64, type) {
+        const bytes = atob(b64.split(',')[1]);
+        const arr = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+        return new Blob([arr], { type });
+      }
+
+      function closeWindow() {
+        eda.sys_IFrame.closeIFrame('');
+        eda.sys_IFrame.openIFrame('/iframe/index.html', 600, 600, 'bonding_pad');
+      }
+
+      ClearButton.onclick = () => {
+        showConfirmDialog('确定要清空所有历史记录吗？此操作不可恢复！', async () => {
+          try {
+            const all = await eda.sys_Storage.getExtensionAllUserConfigs();
+            const keys = Object.keys(all).filter(k => k.includes('qrcode') || k.includes('barcode'));
+            let ok = 0;
+            for (const k of keys) {
+              try { await deleteHistoryItem(k); ok++; } catch (e) { console.error(e); }
+            }
+            if (ok > 0) {
+              showMessage(`成功清空 ${ok} 条记录`);
+              loadHistory();
+              filterTypeInput.value = '';
+              filterContentInput.value = '';
+              filterColorSelect.value = '';
+              applyFilters();
+            } else throw new Error();
+          } catch {
+            showMessage('清空失败');
+          }
+        });
+      };
+
+      BackButton.onclick = closeWindow;
+
+      setupFilterListeners();
+      loadHistory();
+    });
+  </script>
+</body>
 </html>

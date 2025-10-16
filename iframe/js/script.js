@@ -254,8 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 	/* ================================从历史记录导入图像================================================================== */
 	async function Import() {
-		eda.sys_IFrame.closeIFrame('');
-		await eda.sys_IFrame.openIFrame("/iframe/History.html", 600,600,"history");
+		//eda.sys_IFrame.closeIFrame('');
+		await eda.sys_IFrame.openIFrame("/iframe/History.html", 900,240,"history");
 	}
 
 	// 事件绑定
