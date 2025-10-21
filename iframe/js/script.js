@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		console.log(12);
 		clearInterval(followInterval);
 		followInterval = null;
-		showMessage("放置完成");
+		//showMessage("放置完成");
 	};
 
 

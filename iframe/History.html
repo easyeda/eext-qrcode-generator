@@ -235,306 +235,399 @@
     </div>
   </div>
 
-  <script>
-    let CreateFlag = 0;
-    let base64Data = '';
-    let type = '';
-    let size = '';
-    let useColorSilk = '';
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const HistoryList = document.getElementById('history-list');
+    const BackButton = document.getElementById('back-btn');
+    const ClearButton = document.getElementById('clear-btn');
+    const filterRow = document.getElementById('filter-row');
+    const filterTypeInput = document.getElementById('filter-type');
+    const filterContentInput = document.getElementById('filter-content');
+    const filterColorSelect = document.getElementById('filter-color');
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const HistoryList = document.getElementById('history-list');
-      const BackButton = document.getElementById('back-btn');
-      const ClearButton = document.getElementById('clear-btn');
-      const filterRow = document.getElementById('filter-row');
-      const filterTypeInput = document.getElementById('filter-type');
-      const filterContentInput = document.getElementById('filter-content');
-      const filterColorSelect = document.getElementById('filter-color');
+    // ====== 新增：全局状态变量 ======
+    let followInterval = null;          // 定时器 ID
+    let currentImageID = null;          // 当前预览图元 ID
+    let isCurrentColorImage = false;    // 是否彩色
+    let currentWidth = 0;
+    let currentHeight = 0;
+    let currentBase64 = '';
+    let currentBlob = null;
+    let currentEDAImage = null;
 
-      // 所有图标都控制同一行
-      document.querySelectorAll('.filter-icon').forEach(icon => {
-        icon.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (filterRow.style.display === 'none' || !filterRow.style.display) {
-            filterRow.style.display = '';
-            // 聚焦到第一个输入框（可选）
-            filterTypeInput.focus();
-          } else {
-            filterRow.style.display = 'none';
-          }
-        });
+    // 所有图标都控制同一行
+    document.querySelectorAll('.filter-icon').forEach(icon => {
+      icon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (filterRow.style.display === 'none' || !filterRow.style.display) {
+          filterRow.style.display = '';
+          filterTypeInput.focus();
+        } else {
+          filterRow.style.display = 'none';
+        }
+      });
+    });
+
+    // 实时过滤
+    function setupFilterListeners() {
+      [filterTypeInput, filterContentInput].forEach(input => {
+        input.addEventListener('input', applyFilters);
+      });
+      filterColorSelect.addEventListener('change', applyFilters);
+    }
+
+    function applyFilters() {
+      const typeQuery = filterTypeInput.value.trim().toLowerCase();
+      const contentQuery = filterContentInput.value.trim().toLowerCase();
+      const colorQuery = filterColorSelect.value;
+
+      const rows = HistoryList.querySelectorAll('tr:not(.empty-row)');
+      let visibleCount = 0;
+
+      rows.forEach(row => {
+        const typeText = row.querySelector('.type-tag')?.textContent.trim().toLowerCase() || '';
+        const contentText = row.querySelector('.content-cell')?.textContent.trim().toLowerCase() || '';
+        const colorText = row.querySelector('td:nth-child(4)')?.dataset.color || '';
+
+        const typeMatch = typeQuery === '' || typeText.includes(typeQuery);
+        const contentMatch = contentQuery === '' || contentText.includes(contentQuery);
+        const colorMatch = colorQuery === '' || colorText === colorQuery;
+
+        if (typeMatch && contentMatch && colorMatch) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
       });
 
-      // 实时过滤
-      function setupFilterListeners() {
-        [filterTypeInput, filterContentInput].forEach(input => {
-          input.addEventListener('input', applyFilters);
-        });
-        filterColorSelect.addEventListener('change', applyFilters);
-      }
-
-      function applyFilters() {
-        const typeQuery = filterTypeInput.value.trim().toLowerCase();
-        const contentQuery = filterContentInput.value.trim().toLowerCase();
-        const colorQuery = filterColorSelect.value; // "是" / "否" / ""
-
-        const rows = HistoryList.querySelectorAll('tr:not(.empty-row)');
-        let visibleCount = 0;
-
-        rows.forEach(row => {
-          const typeText = row.querySelector('.type-tag')?.textContent.trim().toLowerCase() || '';
-          const contentText = row.querySelector('.content-cell')?.textContent.trim().toLowerCase() || '';
-          const colorText = row.querySelector('td:nth-child(4)')?.dataset.color || '';
-
-          const typeMatch = typeQuery === '' || typeText.includes(typeQuery);
-          const contentMatch = contentQuery === '' || contentText.includes(contentQuery);
-          const colorMatch = colorQuery === '' || colorText === colorQuery;
-
-          if (typeMatch && contentMatch && colorMatch) {
-            row.style.display = '';
-            visibleCount++;
-          } else {
-            row.style.display = 'none';
-          }
-        });
-
-        const emptyRow = HistoryList.querySelector('.empty-row');
-        if (visibleCount === 0 && rows.length > 0) {
-          if (!emptyRow) {
-            const tr = document.createElement('tr');
-            tr.className = 'empty-row';
-            const td = document.createElement('td');
-            td.colSpan = 5;
-            td.textContent = '无匹配记录';
-            td.style.textAlign = 'center';
-            td.style.color = '#6c757d';
-            td.style.padding = '20px 0';
-            tr.appendChild(td);
-            HistoryList.appendChild(tr);
-          }
-        } else if (emptyRow) {
-          emptyRow.remove();
+      const emptyRow = HistoryList.querySelector('.empty-row');
+      if (visibleCount === 0 && rows.length > 0) {
+        if (!emptyRow) {
+          const tr = document.createElement('tr');
+          tr.className = 'empty-row';
+          const td = document.createElement('td');
+          td.colSpan = 5;
+          td.textContent = '无匹配记录';
+          td.style.textAlign = 'center';
+          td.style.color = '#6c757d';
+          td.style.padding = '20px 0';
+          tr.appendChild(td);
+          HistoryList.appendChild(tr);
         }
+      } else if (emptyRow) {
+        emptyRow.remove();
       }
+    }
 
-      function showMessage(text) {
-        const el = document.createElement('div');
-        el.style.cssText = `
-          position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-          background: #198754; color: white; padding: 8px 16px;
-          border-radius: 4px; z-index: 1000; font-size: 14px;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-          animation: fadeOut 3s forwards;
-        `;
-        el.textContent = text;
-        document.body.appendChild(el);
-        setTimeout(() => el.parentNode?.removeChild(el), 3000);
-      }
+    function showMessage(text) {
+      const el = document.createElement('div');
+      el.style.cssText = `
+        position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+        background: #198754; color: white; padding: 8px 16px;
+        border-radius: 4px; z-index: 1000; font-size: 14px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        animation: fadeOut 3s forwards;
+      `;
+      el.textContent = text;
+      document.body.appendChild(el);
+      setTimeout(() => el.parentNode?.removeChild(el), 3000);
+    }
 
-      function showConfirmDialog(title, onConfirm) {
-        const overlay = document.createElement('div');
-        overlay.style.cssText = `
-          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-          background: rgba(0,0,0,0.5); display: flex; align-items: center;
-          justify-content: center; z-index: 2000;
-        `;
-        overlay.innerHTML = `
-          <div style="background: white; padding: 20px; border-radius: 8px; max-width: 300px; text-align: center; font-size: 15px;">
-            <div style="margin-bottom: 16px; font-weight: 600;">${title}</div>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-              <button style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">取消</button>
-              <button style="flex:1; padding:6px; background:#dc3545; color:white; border:none; border-radius:4px;">确定</button>
-            </div>
+    function showConfirmDialog(title, onConfirm) {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); display: flex; align-items: center;
+        justify-content: center; z-index: 2000;
+      `;
+      overlay.innerHTML = `
+        <div style="background: white; padding: 20px; border-radius: 8px; max-width: 300px; text-align: center; font-size: 15px;">
+          <div style="margin-bottom: 16px; font-weight: 600;">${title}</div>
+          <div style="display: flex; gap: 10px; justify-content: center;">
+            <button style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">取消</button>
+            <button style="flex:1; padding:6px; background:#dc3545; color:white; border:none; border-radius:4px;">确定</button>
           </div>
-        `;
-        const cancel = overlay.querySelector('button');
-        const confirm = overlay.querySelector('button:last-child');
-        cancel.onclick = () => document.body.removeChild(overlay);
-        confirm.onclick = () => {
-          onConfirm();
-          document.body.removeChild(overlay);
-        };
-        document.body.appendChild(overlay);
-      }
-
-      function generateQRCode(content, color = '#000000') {
-        return new Promise(resolve => {
-          const canvas = document.createElement('canvas');
-          QRCode.toCanvas(canvas, content, {
-            width: 100, margin: 2, correctLevel: 3,
-            color: { dark: color, light: '#ffffff' }
-          }, err => resolve(err ? null : canvas));
-        });
-      }
-
-      function generateBarcode(content, color = '#000000') {
-        try {
-          const canvas = document.createElement('canvas');
-          JsBarcode(canvas, content, {
-            lineColor: color, format: 'CODE128',
-            width: 2, height: 80, displayValue: false, margin: 5
-          });
-          return Promise.resolve(canvas);
-        } catch (e) {
-          console.error('条形码生成错误:', e);
-          return Promise.resolve(null);
-        }
-      }
-
-      async function deleteHistoryItem(key) {
-        await eda.sys_Storage.setExtensionUserConfig(key, null);
-        if (typeof eda.sys_Storage.deleteExtensionUserConfig === 'function') {
-          await eda.sys_Storage.deleteExtensionUserConfig(key);
-        }
-      }
-
-      async function loadHistory() {
-        try {
-          const all = await eda.sys_Storage.getExtensionAllUserConfigs();
-          const data = Object.entries(all)
-            .filter(([k]) => k.includes('qrcode') || k.includes('barcode'))
-            .map(([k, v]) => ({ id: k, ...v }))
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-          renderHistoryList(data);
-        } catch (e) {
-          console.error('加载失败:', e);
-          HistoryList.innerHTML = `<tr class="empty-row"><td colspan="5">加载失败</td></tr>`;
-          showMessage('加载失败');
-        }
-      }
-
-      function renderHistoryList(data) {
-        if (!data.length) {
-          HistoryList.innerHTML = `<tr class="empty-row"><td colspan="5">暂无历史记录</td></tr>`;
-          return;
-        }
-
-        HistoryList.innerHTML = '';
-        data.forEach(item => {
-          const row = document.createElement('tr');
-          row.dataset.id = item.id;
-
-          const typeCell = document.createElement('td');
-          const tag = document.createElement('span');
-          tag.className = `type-tag ${item.type === 'qrcode' ? 'qrcode-tag' : 'barcode-tag'}`;
-          tag.textContent = item.type === 'qrcode' ? '二维码' : '条形码';
-          typeCell.appendChild(tag);
-
-          const sizeCell = document.createElement('td');
-          sizeCell.textContent = item.size;
-
-          const contentCell = document.createElement('td');
-          contentCell.className = 'content-cell';
-          contentCell.textContent = item.content;
-          contentCell.title = item.content;
-
-          const colorCell = document.createElement('td');
-          colorCell.textContent = item.useColorSilk ? '是' : '否';
-          colorCell.dataset.color = item.useColorSilk ? '是' : '否';
-
-          const opCell = document.createElement('td');
-          const delBtn = document.createElement('button');
-          delBtn.className = 'delete-btn';
-          delBtn.textContent = '删除';
-          delBtn.onclick = (e) => {
-            e.stopPropagation();
-            showConfirmDialog('确定要删除这条记录吗？', async () => {
-              try {
-                await deleteHistoryItem(item.id);
-                showMessage('删除成功');
-                loadHistory();
-                // 重置过滤器
-                filterTypeInput.value = '';
-                filterContentInput.value = '';
-                filterColorSelect.value = '';
-                applyFilters();
-              } catch (err) {
-                console.error('删除失败:', err);
-                showMessage('删除失败');
-              }
-            });
-          };
-          opCell.appendChild(delBtn);
-
-          row.addEventListener('click', async () => {
-            CreateFlag = 1;
-            showMessage("请在画布上点击以生成丝印");
-            size = item.size;
-            type = item.type;
-            useColorSilk = item.useColorSilk;
-
-            const color = item.useColorSilk ? item.color : '#000000';
-            let canvas = item.type === 'qrcode'
-              ? await generateQRCode(item.content, color)
-              : await generateBarcode(item.content, color);
-            base64Data = canvas ? canvas.toDataURL('image/png') : '';
-          });
-
-          row.append(typeCell, sizeCell, contentCell, colorCell, opCell);
-          HistoryList.appendChild(row);
-        });
-        applyFilters();
-      }
-
-      window.onblur = async () => {
-        if (!CreateFlag) return;
-        let h = parseFloat(size), w = parseFloat(size);
-        const pt = await eda.pcb_SelectControl.getCurrentMousePosition();
-        if (type === "barcode") w *= 3;
-
-        if (useColorSilk) {
-          eda.pcb_PrimitiveObject.create(
-            EPCB_LayerId.TOP_SILKSCREEN, pt.x, pt.y, base64Data, w, h, 0, false, 'img', false
-          );
-        } else {
-          const blob = base64ToBlob(base64Data, 'image/png');
-          const img = await eda.pcb_MathPolygon.convertImageToComplexPolygon(blob, w, h, 0.5, 0.5, 0, 0, true, false);
-          eda.pcb_PrimitiveImage.create(pt.x, pt.y, img, EPCB_LayerId.TOP_SILKSCREEN, w, h, 0, false, false);
-        }
-        CreateFlag = 0;
-        showMessage("图像已生成");
+        </div>
+      `;
+      const cancel = overlay.querySelector('button');
+      const confirm = overlay.querySelector('button:last-child');
+      cancel.onclick = () => document.body.removeChild(overlay);
+      confirm.onclick = () => {
+        onConfirm();
+        document.body.removeChild(overlay);
       };
+      document.body.appendChild(overlay);
+    }
 
-      function base64ToBlob(b64, type) {
-        const bytes = atob(b64.split(',')[1]);
-        const arr = new Uint8Array(bytes.length);
-        for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-        return new Blob([arr], { type });
+    function generateQRCode(content, color = '#000000') {
+      return new Promise(resolve => {
+        const canvas = document.createElement('canvas');
+        QRCode.toCanvas(canvas, content, {
+          width: 100, margin: 2, correctLevel: 3,
+          color: { dark: color, light: '#ffffff' }
+        }, err => resolve(err ? null : canvas));
+      });
+    }
+
+    function generateBarcode(content, color = '#000000') {
+      try {
+        const canvas = document.createElement('canvas');
+        JsBarcode(canvas, content, {
+          lineColor: color, format: 'CODE128',
+          width: 2, height: 80, displayValue: false, margin: 5
+        });
+        return Promise.resolve(canvas);
+      } catch (e) {
+        console.error('条形码生成错误:', e);
+        return Promise.resolve(null);
+      }
+    }
+
+    async function deleteHistoryItem(key) {
+      await eda.sys_Storage.setExtensionUserConfig(key, null);
+      if (typeof eda.sys_Storage.deleteExtensionUserConfig === 'function') {
+        await eda.sys_Storage.deleteExtensionUserConfig(key);
+      }
+    }
+
+    async function loadHistory() {
+      try {
+        const all = await eda.sys_Storage.getExtensionAllUserConfigs();
+        const data = Object.entries(all)
+          .filter(([k]) => k.includes('qrcode') || k.includes('barcode'))
+          .map(([k, v]) => ({ id: k, ...v }))
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        renderHistoryList(data);
+      } catch (e) {
+        console.error('加载失败:', e);
+        HistoryList.innerHTML = `<tr class="empty-row"><td colspan="5">加载失败</td></tr>`;
+        showMessage('加载失败');
+      }
+    }
+
+    function renderHistoryList(data) {
+      if (!data.length) {
+        HistoryList.innerHTML = `<tr class="empty-row"><td colspan="5">暂无历史记录</td></tr>`;
+        return;
       }
 
-      function closeWindow() {
-        eda.sys_IFrame.closeIFrame('');
-        eda.sys_IFrame.openIFrame('/iframe/index.html', 600, 600, 'bonding_pad');
-      }
+      HistoryList.innerHTML = '';
+      data.forEach(item => {
+        const row = document.createElement('tr');
+        row.dataset.id = item.id;
 
-      ClearButton.onclick = () => {
-        showConfirmDialog('确定要清空所有历史记录吗？此操作不可恢复！', async () => {
-          try {
-            const all = await eda.sys_Storage.getExtensionAllUserConfigs();
-            const keys = Object.keys(all).filter(k => k.includes('qrcode') || k.includes('barcode'));
-            let ok = 0;
-            for (const k of keys) {
-              try { await deleteHistoryItem(k); ok++; } catch (e) { console.error(e); }
-            }
-            if (ok > 0) {
-              showMessage(`成功清空 ${ok} 条记录`);
+        const typeCell = document.createElement('td');
+        const tag = document.createElement('span');
+        tag.className = `type-tag ${item.type === 'qrcode' ? 'qrcode-tag' : 'barcode-tag'}`;
+        tag.textContent = item.type === 'qrcode' ? '二维码' : '条形码';
+        typeCell.appendChild(tag);
+
+        const sizeCell = document.createElement('td');
+        sizeCell.textContent = item.size;
+
+        const contentCell = document.createElement('td');
+        contentCell.className = 'content-cell';
+        contentCell.textContent = item.content;
+        contentCell.title = item.content;
+
+        const colorCell = document.createElement('td');
+        colorCell.textContent = item.useColorSilk ? '是' : '否';
+        colorCell.dataset.color = item.useColorSilk ? '是' : '否';
+
+        const opCell = document.createElement('td');
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-btn';
+        delBtn.textContent = '删除';
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          showConfirmDialog('确定要删除这条记录吗？', async () => {
+            try {
+              await deleteHistoryItem(item.id);
+              showMessage('删除成功');
               loadHistory();
               filterTypeInput.value = '';
               filterContentInput.value = '';
               filterColorSelect.value = '';
               applyFilters();
-            } else throw new Error();
-          } catch {
-            showMessage('清空失败');
+            } catch (err) {
+              console.error('删除失败:', err);
+              showMessage('删除失败');
+            }
+          });
+        };
+        opCell.appendChild(delBtn);
+
+        row.addEventListener('click', async () => {
+          // 清除之前的预览
+          if (followInterval) {
+            clearInterval(followInterval);
+            followInterval = null;
+            // 注意：EDA 通常不提供 delete，所以预览图会保留，但会被新图覆盖位置
           }
+
+          const color = item.useColorSilk ? item.color : '#000000';
+          let canvas = item.type === 'qrcode'
+            ? await generateQRCode(item.content, color)
+            : await generateBarcode(item.content, color);
+
+          if (!canvas) {
+            showMessage('图像生成失败');
+            return;
+          }
+
+          const base64 = canvas.toDataURL('image/png');
+          const size = parseFloat(item.size);
+          let width = size;
+          let height = size;
+          if (item.type === 'barcode') width *= 3;
+
+          const blob = base64ToBlob(base64, 'image/png');
+
+          const pt = await eda.pcb_SelectControl.getCurrentMousePosition();
+
+          let ID;
+          const isColor = item.useColorSilk;
+
+          if (isColor) {
+            const obj = eda.pcb_PrimitiveObject.create(
+              EPCB_LayerId.TOP_SILKSCREEN,
+              pt.x, pt.y,
+              base64,
+              width,
+              height,
+              0,
+              false,
+              'img',
+              false
+            );
+            ID = (await obj).getState_PrimitiveId();
+          } else {
+            const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(
+              blob, width, height, 0.5, 0.5, 0, 0, true, false
+            );
+            const imgObj = eda.pcb_PrimitiveImage.create(
+              pt.x, pt.y, edaImage, EPCB_LayerId.TOP_SILKSCREEN,
+              width, height, 0, false, false
+            );
+            ID = (await imgObj).getState_PrimitiveId();
+            currentEDAImage = edaImage; // 保存用于后续（其实不需要）
+          }
+
+          // 保存状态
+          currentImageID = ID;
+          isCurrentColorImage = isColor;
+          currentWidth = width;
+          currentHeight = height;
+          currentBase64 = base64;
+          currentBlob = blob;
+
+          showMessage("图像已附着到鼠标，请点击画布放置");
+
+          // 启动跟随定时器
+          followInterval = setInterval(async () => {
+            try {
+              const pos = await eda.pcb_SelectControl.getCurrentMousePosition();
+              if (isCurrentColorImage) {
+                await eda.pcb_PrimitiveObject.modify(currentImageID, {
+                  topLeftX: pos.x,
+                  topLeftY: pos.y
+                });
+              } else {
+                await eda.pcb_PrimitiveImage.modify(currentImageID, {
+                  x: pos.x,
+                  y: pos.y
+                });
+              }
+            } catch (e) {
+              console.error('跟随更新失败:', e);
+              if (followInterval) {
+                clearInterval(followInterval);
+                followInterval = null;
+              }
+            }
+          }, 16); // ~60fps
         });
-      };
 
-      BackButton.onclick = closeWindow;
+        row.append(typeCell, sizeCell, contentCell, colorCell, opCell);
+        HistoryList.appendChild(row);
+      });
+      applyFilters();
+    }
 
-      setupFilterListeners();
-      loadHistory();
+    // ====== 关键：页面失去焦点时确认放置并清理 ======
+    window.onblur = async () => {
+      if (!followInterval || !currentImageID) return;
+
+      // 清除定时器
+      clearInterval(followInterval);
+      followInterval = null;
+
+      // 获取最终位置（可选，其实图像已在正确位置）
+      const pt = await eda.pcb_SelectControl.getCurrentMousePosition();
+      // 注意：不需要重新创建！因为图像已在 pt 位置
+
+      // 重置状态
+      currentImageID = null;
+      currentBase64 = '';
+      currentBlob = null;
+      currentEDAImage = null;
+
+      showMessage("图像已放置");
+    };
+
+    // ====== 可选：按 ESC 取消 ======
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && followInterval) {
+        clearInterval(followInterval);
+        followInterval = null;
+        currentImageID = null;
+        showMessage("已取消放置");
+        // 注意：预览图像仍存在，但用户可忽略或手动删除
+      }
     });
-  </script>
+
+    function base64ToBlob(b64, type) {
+      const bytes = atob(b64.split(',')[1]);
+      const arr = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+      return new Blob([arr], { type });
+    }
+
+    function closeWindow() {
+      eda.sys_IFrame.closeIFrame('');
+      eda.sys_IFrame.openIFrame('/iframe/index.html', 600, 600, 'bonding_pad');
+    }
+
+    ClearButton.onclick = () => {
+      showConfirmDialog('确定要清空所有历史记录吗？此操作不可恢复！', async () => {
+        try {
+          const all = await eda.sys_Storage.getExtensionAllUserConfigs();
+          const keys = Object.keys(all).filter(k => k.includes('qrcode') || k.includes('barcode'));
+          let ok = 0;
+          for (const k of keys) {
+            try { await deleteHistoryItem(k); ok++; } catch (e) { console.error(e); }
+          }
+          if (ok > 0) {
+            showMessage(`成功清空 ${ok} 条记录`);
+            loadHistory();
+            filterTypeInput.value = '';
+            filterContentInput.value = '';
+            filterColorSelect.value = '';
+            applyFilters();
+          } else throw new Error();
+        } catch {
+          showMessage('清空失败');
+        }
+      });
+    };
+
+    BackButton.onclick = closeWindow;
+
+    setupFilterListeners();
+    loadHistory();
+  });
+</script>
+
 </body>
 </html>

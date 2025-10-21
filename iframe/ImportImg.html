@@ -113,121 +113,180 @@
 			<button id="importBtn" class="import-btn" disabled>导入</button>
 		</div>
 
-		<script>
-			const fileInput = document.getElementById('fileInput');
-			const previewContainer = document.getElementById('previewContainer');
-			const importBtn = document.getElementById('importBtn');
-			let selectedFile = null;
+<script>
+  const fileInput = document.getElementById('fileInput');
+  const previewContainer = document.getElementById('previewContainer');
+  const importBtn = document.getElementById('importBtn');
+  let selectedFile = null;
 
-			fileInput.addEventListener('change', function(e) {
-				const file = e.target.files[0];
-				if (file && file.type === 'image/png') {
-					selectedFile = file;
-					const reader = new FileReader();
-					reader.onload = function(e) {
-						previewContainer.innerHTML =
-							`<img src="${e.target.result}" class="preview-image" alt="预览图">`;
-						importBtn.disabled = false;
-					};
-					reader.readAsDataURL(file);
-				} else {
-					alert('请选择 PNG 格式的图片！');
-					previewContainer.innerHTML = '<span class="placeholder-text">图片预览区域</span>';
-					importBtn.disabled = true;
-				}
-			});
+  // ====== 新增：全局状态变量 ======
+  let followInterval = null;     // 定时器 ID
+  let currentImageID = null;     // 当前预览图元 ID
+  let currentWidth = 0;
+  let currentHeight = 0;
+  let currentBlob = null;
 
-			importBtn.addEventListener('click', async function() {
-				if (!selectedFile) return;
+  fileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file && file.type === 'image/png') {
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewContainer.innerHTML =
+          `<img src="${e.target.result}" class="preview-image" alt="预览图">`;
+        importBtn.disabled = false;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('请选择 PNG 格式的图片！');
+      previewContainer.innerHTML = '<span class="placeholder-text">图片预览区域</span>';
+      importBtn.disabled = true;
+    }
+  });
 
-				const reader = new FileReader();
-				reader.onload = async function(e) {
-					const base64 = e.target.result;
-					const img = new Image();
-					img.onload = async function() {
-						await processImageToEDA(base64, img.width, img.height);
-					};
-					img.src = base64;
-				};
-				reader.readAsDataURL(selectedFile);
-			});
+  importBtn.addEventListener('click', async function() {
+    if (!selectedFile) return;
 
-			function base64ToBlob(base64, mimeType) {
-				const byteCharacters = atob(base64.split(',')[1]);
-				const byteNumbers = new Array(byteCharacters.length);
-				for (let i = 0; i < byteCharacters.length; i++) {
-					byteNumbers[i] = byteCharacters.charCodeAt(i);
-				}
-				const byteArray = new Uint8Array(byteNumbers);
-				return new Blob([byteArray], {
-					type: mimeType
-				});
-			}
+    // 清除之前的预览（如果存在）
+    if (followInterval) {
+      clearInterval(followInterval);
+      followInterval = null;
+    }
 
-			async function processImageToEDA(imageData, w, h) {
-				try {
-					// 假设 eda 对象已经存在
-					if (typeof eda === 'undefined') {
-						throw new Error('EDA 对象未定义');
-					}
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const base64 = e.target.result;
+      const img = new Image();
+      img.onload = async function() {
+        try {
+          const blob = base64ToBlob(base64, 'image/png');
+          const width = img.width;
+          const height = img.height;
 
-					const imageBlob = base64ToBlob(imageData, 'image/png');
-					const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(
-						imageBlob, w, h, 0.5, 0.5, 0, 0, true, false
-					);
-					eda.pcb_PrimitiveImage.create(
-						0, 0, edaImage, EPCB_LayerId.TOP_SILKSCREEN, 0, 0, 0, false, false
-					);
-					showMessage("图片导入成功");
-				} catch (error) {
-					console.error('处理图像时出错:', error);
-					alert('处理图像时出错: ' + error.message);
-				}
-			}
+          // 获取初始鼠标位置
+          const pt = await eda.pcb_SelectControl.getCurrentMousePosition();
 
+          // 转换为 EDA 多边形
+          const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(
+            blob, width, height, 0.5, 0.5, 0, 0, true, false
+          );
 
+          // 创建预览图像
+          const imgObj = eda.pcb_PrimitiveImage.create(
+            pt.x, pt.y, edaImage, EPCB_LayerId.TOP_SILKSCREEN,
+            width, height, 0, false, false
+          );
+          const ID = (await imgObj).getState_PrimitiveId();
 
-			// 显示消息函数
-			function showMessage(message) {
-				// 检查是否已存在样式
-				if (!document.getElementById('message-style')) {
-					const style = document.createElement('style');
-					style.id = 'message-style';
-					style.textContent = `
-		            @keyframes fadeInOut {
-		                0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-		                20% { opacity: 1; transform: translateX(-50%) translateY(0); }
-		                80% { opacity: 1; transform: translateX(-50%) translateY(0); }
-		                100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-		            }
-		            .message {
-		                position: fixed;
-		                top: 20px;
-		                left: 50%;
-		                transform: translateX(-50%);
-		                background-color: #1e90ff;
-		                color: white;
-		                padding: 12px 24px;
-		                border-radius: 6px;
-		                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-		                z-index: 1000;
-		                animation: fadeInOut 3s forwards;
-		            }
-		        `;
-					document.head.appendChild(style);
-				}
+          // 保存状态
+          currentImageID = ID;
+          currentWidth = width;
+          currentHeight = height;
+          currentBlob = blob;
 
-				const messageElement = document.createElement('div');
-				messageElement.className = 'message';
-				messageElement.textContent = message;
-				document.body.appendChild(messageElement);
+          showMessage("图片已附着到鼠标，请点击画布放置");
 
-				setTimeout(() => {
-					if (document.body.contains(messageElement)) {
-						document.body.removeChild(messageElement);
-					}
-				}, 3000);
-			}
-		</script>
+          // 启动跟随定时器
+          followInterval = setInterval(async () => {
+            try {
+              const pos = await eda.pcb_SelectControl.getCurrentMousePosition();
+              await eda.pcb_PrimitiveImage.modify(currentImageID, {
+                x: pos.x,
+                y: pos.y
+              });
+            } catch (err) {
+              console.error('跟随更新失败:', err);
+              if (followInterval) {
+                clearInterval(followInterval);
+                followInterval = null;
+              }
+            }
+          }, 16); // ~60fps
+
+        } catch (error) {
+          console.error('处理图像时出错:', error);
+          alert('处理图像时出错: ' + (error.message || error));
+        }
+      };
+      img.src = base64;
+    };
+    reader.readAsDataURL(selectedFile);
+  });
+
+  // ====== 关键：失去焦点时放置并清理 ======
+  window.onblur = async () => {
+    if (!followInterval || !currentImageID) return;
+
+    clearInterval(followInterval);
+    followInterval = null;
+
+    // 图像已在正确位置，无需重新创建
+    currentImageID = null;
+    currentBlob = null;
+    showMessage("图片已放置");
+  };
+
+  // 可选：ESC 取消
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && followInterval) {
+      clearInterval(followInterval);
+      followInterval = null;
+      currentImageID = null;
+      showMessage("已取消放置");
+    }
+  });
+
+  function base64ToBlob(base64, mimeType) {
+    const byteCharacters = atob(base64.split(',')[1]);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+  }
+
+  // 显示消息函数
+  function showMessage(message) {
+    if (!document.getElementById('message-style')) {
+      const style = document.createElement('style');
+      style.id = 'message-style';
+      style.textContent = `
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+          20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+          80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+          100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+        .message {
+          position: fixed;
+          top: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: #1e90ff;
+          color: white;
+          padding: 12px 24px;
+          border-radius: 6px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          z-index: 1000;
+          animation: fadeInOut 3s forwards;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const messageElement = document.createElement('div');
+    messageElement.className = 'message';
+    messageElement.textContent = message;
+    document.body.appendChild(messageElement);
+
+    setTimeout(() => {
+      if (document.body.contains(messageElement)) {
+        document.body.removeChild(messageElement);
+      }
+    }, 3000);
+  }
+</script>
+
 	</body>
 </html>
