@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	let ColorFlag = document.getElementById('buttontest'); // 彩色丝印开关
 	let ImgType = 0; // 图像类型，0为二维码，1为条形码
 	let Create_Type = 0; // 事件是否完成的标志位
+	let ID = ''; //图元ID
+	let followInterval = null; //定时器ID
 	// 按钮对象
 	const CreateQr_Button = document.getElementById('generate-btn'); // 生成二维码按钮
 	const CreateBr_Button = document.getElementById('getBrCode'); // 生成条形码按钮
@@ -188,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					width, height, 0, false, false); // 在画布上创建图像
 			} else if (!CreateType.checked) {
 				showMessage('请在画布上点击以放置丝印');
+				CreatForMouse();
 			} else {
 				console.log("意外事件");
 				return;
@@ -255,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	/* ================================从历史记录导入图像================================================================== */
 	async function Import() {
 		//eda.sys_IFrame.closeIFrame('');
-		await eda.sys_IFrame.openIFrame("/iframe/History.html", 900,240,"history");
+		await eda.sys_IFrame.openIFrame("/iframe/History.html", 900, 240, "history");
 	}
 
 	// 事件绑定
@@ -275,34 +278,91 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	// 监听页面失去焦点
 	window.onblur = async function() {
-		// console.log('网页已失去焦点');
-		const Point = await eda.pcb_SelectControl.getCurrentMousePosition(); //获得鼠标在画布上的坐标
-		// console.log((Point.x / 5) * 0.127 + '，' + (Point.y / 5) * 0.127); // 换算成EDA的坐标
+		console.log(12);
+		clearInterval(followInterval);
+		followInterval = null;
+		showMessage("放置完成");
+	};
+
+
+	async function CreatForMouse() {
+		const Point = await eda.pcb_SelectControl.getCurrentMousePosition();
 		let height = ImgSize.value;
 		let width = ImgSize.value;
-		const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(BlobData, width, height,
-			0.5, 0.5, 0, 0, true, false); // Blob转化为复杂多边形对象
+
+		// 非彩色图像需要先转为复杂多边形
+		const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(
+			BlobData, width, height, 0.5, 0.5, 0, 0, true, false
+		);
+
 		if (ImgType) {
-			// 条形码外形
 			width *= 3;
 		}
+
 		if (CreateType.checked || !Create_Type) {
 			console.log('退出');
 			return;
 		}
+
+		let ID;
+		let isColorImage = false; // 标记是否为彩色图像，用于定时器中区分参数
+
 		if (ColorFlag.checked && !CreateType.checked) {
-			// 彩色丝印开关
-			eda.pcb_PrimitiveObject.create(EPCB_LayerId.TOP_SILKSCREEN, Point.x, Point.y, Base64, width,
-				height, 0, false, 'img', false);
+			// 彩色丝印：使用 PrimitiveObject 创建
+			const colorObj = eda.pcb_PrimitiveObject.create(
+				EPCB_LayerId.TOP_SILKSCREEN,
+				Point.x, Point.y,
+				Base64,
+				width,
+				height,
+				0,
+				false,
+				'img',
+				false
+			);
+			ID = (await colorObj).getState_PrimitiveId();
+			isColorImage = true;
 		} else if (!CreateType.checked) {
-			console.log(CreateType.checked);
-			const NoColorImg = eda.pcb_PrimitiveImage.create(Point.x, Point.y, edaImage, EPCB_LayerId
-				.TOP_SILKSCREEN,
-				width, height, 0, false, false); // 在画布上创建图像\
-			//console.log((await NoColorImg).getState_PrimitiveId());
+			// 非彩色：使用 PrimitiveImage 创建
+			const noColorImg = eda.pcb_PrimitiveImage.create(
+				Point.x, Point.y, edaImage, EPCB_LayerId.TOP_SILKSCREEN,
+				width, height, 0, false, false
+			);
+			ID = (await noColorImg).getState_PrimitiveId();
+			isColorImage = false;
 		} else {
 			console.log('鼠标意外事件');
+			return;
 		}
+
 		Create_Type = 0;
-	};
+
+
+		// 启动定时器，统一处理，但根据类型使用不同参数
+		 followInterval = setInterval(async () => {
+			try {
+				const currentPoint = await eda.pcb_SelectControl.getCurrentMousePosition();
+
+				if (isColorImage) {
+					// 彩色图像：使用 topLeftX / topLeftY
+					await eda.pcb_PrimitiveObject.modify(ID, {
+						topLeftX: currentPoint.x,
+						topLeftY: currentPoint.y
+					});
+				} else {
+					// 非彩色图像：使用 x / y
+					await eda.pcb_PrimitiveImage.modify(ID, {
+						x: currentPoint.x,
+						y: currentPoint.y
+					});
+				}
+
+				console.log(`鼠标位置: X=${currentPoint.x}, Y=${currentPoint.y}`);
+			} catch (error) {
+				console.error('更新图像位置失败:', error);
+				clearInterval(followInterval); // 出错时清理定时器，避免内存泄漏
+			}
+		}, 10);
+	}
+
 });
