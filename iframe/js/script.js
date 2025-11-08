@@ -172,8 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	async function CreateImg() {
 		try {
 			Create_Type = 1;
-			let height = ImgSize.value;
-			let width = ImgSize.value;
+			let height = ImgSize.value/0.0254;
+			let width = ImgSize.value/0.0254;
 			const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(BlobData, width, height,
 				0.5, 0.5, 0, 0, true, false); // Blob转化为复杂多边形对象
 			console.log(edaImage);
@@ -287,8 +287,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	async function CreatForMouse() {
 		const Point = await eda.pcb_SelectControl.getCurrentMousePosition();
-		let height = ImgSize.value;
-		let width = ImgSize.value;
+		let height = ImgSize.value/0.0254;
+		let width = ImgSize.value/0.0254;
 
 		// 非彩色图像需要先转为复杂多边形
 		const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(
