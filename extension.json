@@ -3,7 +3,7 @@
 	"uuid": "dc575b025706476cabdfa7c45ec24bfb",
 	"displayName": "二维码生成器",
 	"description": "二维码/条形码丝印生成工具",
-	"version": "1.11.1",
+	"version": "2.2.1",
 	"publisher": "JLCEDA <support@lceda.cn>",
 	"engines": {
 		"eda": "^2.2.40"
