@@ -9,16 +9,7 @@
 		<script src="/iframe/js/JsBarcode.all.min.js"></script>
 		<!-- 	二维码生成库 安装到本地 开源协议：MIT -->
 		<script src="/iframe/js/qrcode.min.js"></script>
-		<link rel="stylesheet" href="/iframe/css/input.css" />
-		<link rel="stylesheet" href="/iframe/EDA_UI.css" />
 		<!-- 	条形码生成库 安装到本地 开源协议：MIT -->
-		<!-- EDA环境下与调试环境下的引用路径不同 调试环境下需要使用相对路径否则不生效 如果使用HbuilderX调试 那么取消以下注释 -->
-		<link rel="stylesheet" href="css/style.css" />
-		<script src="js/script.js"></script>
-		<script src="js/qrcode.min.js"></script>
-		<script src="js/JsBarcode.all.min.js"></script>
-		<link rel="stylesheet" href="css/input.css" />
-		<link rel="stylesheet" href="EDA_UI.css" />
 	</head>
 	<body>
 		<div class="container">
@@ -41,6 +32,10 @@
 					<input type="checkbox" name="color" id="buttontest" value="color" class="EDA_UI_FuXuanKuang" />
 					<label for="buttontest">生成彩色图片</label>
 					<input type="color" id="qr-color" value="#000000" />
+				</div>
+				<div style="display: flex; align-items: center; width: 100%; justify-content: start; margin-top: -15px">
+					<label for="filename-input" style="white-space: nowrap; margin-right: 20px">文件名： </label>
+					<input id="filename-input" type="text" style="width: 300px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="输入文件名（不含扩展名）" />
 				</div>
 				<div class="output-section" style="margin-top: -15px">
 					<div id="qr-result" class="qr-result">

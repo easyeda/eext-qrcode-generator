@@ -4,7 +4,7 @@
 export function activate(status?: 'onStartupFinished', arg?: string): void {}
 
 export function CreateQRCode(): void {
-	eda.sys_IFrame.openIFrame('/iframe/index.html', 600, 600, 'bonding_pad');
+	eda.sys_IFrame.openIFrame('/iframe/index.html', 600, 660, 'bonding_pad');
 }
 
 export  function test(): void {

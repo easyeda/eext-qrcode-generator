@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	const y = document.getElementById('yCoord');
 	const PointDiv = document.getElementById('coordinateInputs'); // 输入框所在的div
 	const Color = document.getElementById('qr-color'); // 丝印颜色
+	const FilenameInput = document.getElementById('filename-input'); // 自定义文件名
 	// 标志位
 	let CreateType = document.getElementById('CreateType'); // 是否从坐标生成的开关
 	let ColorFlag = document.getElementById('buttontest'); // 彩色丝印开关
@@ -158,11 +159,13 @@ document.addEventListener('DOMContentLoaded', () => {
 	/* ================================下载生成好的图像================================================================== */
 	function Download() {
 		if (!Base64) {
-			Base64('图像未生成');
+			showMessage('图像未生成');
 			return;
 		}
 		const link = document.createElement('a');
-		link.download = new Date().toISOString().replace(/[:.]/g, '-') + '_丝印.png';
+		const customFilename = FilenameInput.value.trim();
+		const filename = customFilename ? customFilename + '.png' : new Date().toISOString().replace(/[:.]/g, '-') + '_丝印.png';
+		link.download = filename;
 		link.href = Base64;
 		document.body.appendChild(link);
 		link.click();
@@ -235,21 +238,17 @@ document.addEventListener('DOMContentLoaded', () => {
 			size: parseInt(ImgSize.value, 10), // 尺寸
 			color: ColorFlag.checked ? Color.value : '#000000', // 颜色
 			timestamp: new Date().toISOString(), // 时间戳
-			//imageData: Base64, // 图像 base64 数据
 			useColorSilk: ColorFlag.checked, // 是否使用彩色丝印
 			fromCoordinates: CreateType.checked // 是否从坐标生成
 		};
 
 		try {
-			let length = await eda.sys_Storage.getExtensionAllUserConfigs();
-			let qrlength = Object.keys(length).filter(key => key.includes('qrcode')).length;
-			let brlength = Object.keys(length).filter(key => key.includes('barcode')).length;
-			console.log(length);
-			// 使用扩展存储 API 保存数据
-			await eda.sys_Storage.setExtensionUserConfig(ImgType === 0 ? 'qrcode' + (qrlength + 1) :
-				'barcode' + (brlength + 1), dataToSave);
+			// 使用时间戳生成唯一键名
+			const timestamp = Date.now();
+			const keyName = (ImgType === 0 ? 'qrcode_' : 'barcode_') + timestamp;
+
+			await eda.sys_Storage.setExtensionUserConfig(keyName, dataToSave);
 			showMessage('历史记录已保存');
-			console.log(await eda.sys_Storage.getExtensionAllUserConfigs());
 		} catch (error) {
 			console.error('保存历史记录失败:', error);
 			showMessage('保存失败: ' + error.message);

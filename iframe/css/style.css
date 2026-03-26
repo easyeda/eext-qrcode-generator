@@ -242,3 +242,291 @@ footer {
 	/* Element Plus 的蓝色 */
 	box-shadow: 0 0 5px rgba(64, 158, 255, 0.5);
 }
+
+/* ========== 坐标输入框样式 (from input.css) ========== */
+#coordinateInputs {
+	margin-left: -5px;
+	width: fit-content;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+#xCoord, #yCoord {
+	height: 45px;
+	width: 60px;
+	padding: 0 12px;
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	font-size: 16px;
+	transition: all 0.2s ease-in-out;
+}
+
+#xCoord:hover, #yCoord:hover {
+	border-color: #007bff;
+	box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+}
+
+#xCoord:focus, #yCoord:focus {
+	outline: none;
+	border-color: #007bff;
+	box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+}
+
+#xCoord:not(:focus):not(:hover), #yCoord:not(:focus):not(:hover) {
+	border-color: #ccc;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* ========== 自定义复选框样式 (from EDA_UI.css) ========== */
+.EDA_UI_FuXuanKuang {
+	opacity: 0;
+	position: absolute;
+	width: 0;
+	height: 0;
+}
+
+.EDA_UI_FuXuanKuang + label {
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	user-select: none;
+	font-size: 16px;
+	color: #333;
+	position: relative;
+}
+
+.EDA_UI_FuXuanKuang + label::before {
+	content: '';
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	border: 2px solid #ccc;
+	border-radius: 4px;
+	margin-right: 10px;
+	background-color: #fff;
+	flex-shrink: 0;
+	transition: all 0.2s ease-in-out;
+}
+
+.EDA_UI_FuXuanKuang:checked + label::before {
+	background-color: #007bff;
+	border-color: #007bff;
+}
+
+.EDA_UI_FuXuanKuang + label::after {
+	content: '';
+	position: absolute;
+	left: 7px;
+	top: 4px;
+	width: 6px;
+	height: 12px;
+	border: solid white;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+	opacity: 0;
+	transition: opacity 0.2s ease-in-out;
+}
+
+.EDA_UI_FuXuanKuang:checked + label::after {
+	opacity: 1;
+}
+
+.EDA_UI_FuXuanKuang + label:hover::before {
+	border-color: #80bdff;
+}
+
+/* ========== History Page Styles ========== */
+.history-container {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	background: white;
+}
+
+.table-wrapper {
+	flex: 1;
+	overflow: auto;
+	padding: 0 16px 16px;
+}
+
+.history-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 0;
+	border: 1px solid #e0f0ff;
+}
+
+.history-table thead th {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: #1e90ff;
+	border: 1px solid #1e90ff;
+	font-weight: 600;
+	color: white;
+	font-size: 14px;
+	padding: 8px 12px;
+	text-align: left;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.filter-icon {
+	margin-left: 6px;
+	cursor: pointer;
+	color: white;
+	font-size: 14px;
+}
+
+.filter-icon:hover {
+	color: #e0f0ff;
+}
+
+.filter-input {
+	width: 100%;
+	padding: 4px 8px;
+	border: 1px solid #ced4da;
+	border-radius: 3px;
+	font-size: 13px;
+	box-sizing: border-box;
+}
+
+.filter-select {
+	width: 100%;
+	padding: 4px 8px;
+	border: 1px solid #ced4da;
+	border-radius: 3px;
+	font-size: 13px;
+	background: white;
+}
+
+.history-table td {
+	padding: 8px 12px;
+	border: 1px solid #e0f0ff;
+	font-size: 14px;
+	vertical-align: middle;
+	color: #333;
+}
+
+.history-table tr:hover td {
+	background-color: #f0f8ff;
+}
+
+.type-tag {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 10px;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.qrcode-tag {
+	background: #e3f2fd;
+	color: #1976d2;
+}
+
+.barcode-tag {
+	background: #f1f8e9;
+	color: #388e3c;
+}
+
+.content-cell {
+	font-family: monospace;
+	word-break: break-all;
+}
+
+.delete-btn {
+	background: #dc3545;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	padding: 4px 8px;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.delete-btn:hover {
+	background: #c82333;
+}
+
+.actions {
+	padding: 6px 16px;
+	text-align: right;
+	flex-shrink: 0;
+	border-top: 1px solid #eee;
+	background: white;
+}
+
+.btn {
+	padding: 6px 12px;
+	margin-left: 8px;
+	border: none;
+	border-radius: 4px;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.btn-outline {
+	background: transparent;
+	color: #1e90ff;
+	border: 1px solid #1e90ff;
+}
+
+.btn-outline:hover {
+	background: #1e90ff;
+	color: white;
+}
+
+.btn-danger {
+	background: #dc3545;
+	color: white;
+	border: 1px solid #dc3545;
+}
+
+.btn-danger:hover {
+	background: #c82333;
+}
+
+.btn-success {
+	background: #1e90ff;
+	color: white;
+	border: 1px solid #1e90ff;
+}
+
+.btn-success:hover {
+	background: #1873cc;
+}
+
+.empty-row td {
+	text-align: center;
+	color: #6c757d;
+	padding: 20px 0;
+}
+
+.filter-row {
+	background: #fff;
+}
+
+.filter-row td {
+	padding: 6px 12px 4px;
+	background: #fff;
+}
+
+.preview-img {
+	width: 40px;
+	height: 40px;
+	object-fit: contain;
+	border: 1px solid #e0f0ff;
+	border-radius: 4px;
+}
+
+.sort-icon {
+	margin-left: 4px;
+	font-size: 12px;
+	color: #6c757d;
+}
+
+

@@ -13,7 +13,7 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      background-color: #f1e7e3;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -24,13 +24,13 @@
       background-color: white;
       padding: 30px;
       border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 123, 255, 0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
       width: 500px;
       text-align: center;
     }
 
     h1 {
-      color: #1976d2;
+      color: #1e90ff;
       margin-bottom: 20px;
     }
 
@@ -47,7 +47,7 @@
     .file-input-label {
       display: inline-block;
       padding: 10px 20px;
-      background-color: #2196f3;
+      background-color: #1e90ff;
       color: white;
       border-radius: 6px;
       cursor: pointer;
@@ -55,7 +55,7 @@
     }
 
     .file-input-label:hover {
-      background-color: #1976d2;
+      background-color: #1873cc;
     }
 
     /* 反相选项 */
@@ -75,12 +75,12 @@
     .preview-container {
       margin: 20px 0;
       min-height: 200px;
-      border: 2px dashed #90caf9;
+      border: 2px dashed #e0f0ff;
       border-radius: 8px;
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #f1f8fe;
+      background-color: white;
     }
 
     .preview-image {
@@ -90,12 +90,12 @@
     }
 
     .placeholder-text {
-      color: #64b5f6;
+      color: #87cefa;
     }
 
     .import-btn {
       padding: 10px 20px;
-      background-color: #42a5f5;
+      background-color: #1e90ff;
       color: white;
       border: none;
       border-radius: 6px;
@@ -105,11 +105,11 @@
     }
 
     .import-btn:hover:not(:disabled) {
-      background-color: #1e88e5;
+      background-color: #1873cc;
     }
 
     .import-btn:disabled {
-      background-color: #bbdefb;
+      background-color: #e0f0ff;
       cursor: not-allowed;
     }
   </style>
@@ -142,6 +142,7 @@
 
   let followInterval = null;
   let currentImageID = null;
+  let originalImageData = null;
 
   // 文件选择
   fileInput.addEventListener('change', function(e) {
@@ -149,7 +150,8 @@
     if (file && file.type === 'image/png') {
       const reader = new FileReader();
       reader.onload = () => {
-        previewContainer.innerHTML = `<img src="${reader.result}" class="preview-image" alt="预览">`;
+        originalImageData = reader.result;
+        updatePreview();
         importBtn.disabled = false;
       };
       reader.readAsDataURL(file);
@@ -159,9 +161,44 @@
     }
   });
 
+  // 反相复选框改变时更新预览
+  invertCheckbox.addEventListener('change', () => {
+    if (originalImageData) {
+      updatePreview();
+    }
+  });
+
+  function updatePreview() {
+    if (!originalImageData) return;
+
+    if (invertCheckbox.checked) {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          data[i] = 255 - data[i];
+          data[i + 1] = 255 - data[i + 1];
+          data[i + 2] = 255 - data[i + 2];
+        }
+        ctx.putImageData(imageData, 0, 0);
+        previewContainer.innerHTML = `<img src="${canvas.toDataURL()}" class="preview-image" alt="预览">`;
+      };
+      img.src = originalImageData;
+    } else {
+      previewContainer.innerHTML = `<img src="${originalImageData}" class="preview-image" alt="预览">`;
+    }
+  }
+
   function resetPreview() {
     previewContainer.innerHTML = '<span class="placeholder-text">图片预览区域</span>';
     importBtn.disabled = true;
+    originalImageData = null;
   }
 
   // 导入主逻辑
@@ -169,81 +206,79 @@
     const file = fileInput.files[0];
     if (!file) return;
 
-    // 清除之前的跟随
     if (followInterval) {
       clearInterval(followInterval);
       followInterval = null;
     }
 
     try {
-      // 转为 Blob
-      const blob = new Blob([await file.arrayBuffer()], { type: 'image/png' });
+      // 由 JS 完成图像处理（含反相），输出处理后的 base64
+      const base64 = await getProcessedBase64();
 
-      // 获取尺寸
+      // 从处理后的图像读取尺寸
       const img = new Image();
-      await new Promise(resolve => {
-        img.onload = resolve;
-        img.src = URL.createObjectURL(blob);
-      });
-      const { width, height } = img;
+      await new Promise(resolve => { img.onload = resolve; img.src = base64; });
+      const width = img.width;
+      const height = img.height;
 
-      // 获取鼠标位置
       const pt = await eda.pcb_SelectControl.getCurrentMousePosition();
 
-      const edaImage = await eda.pcb_MathPolygon.convertImageToComplexPolygon(
-        blob,
-        width,
-        height,
-        0.5,   // originX
-        0.5,   // originY
-        0,     // offsetX
-        0,     // offsetY
-        true,  // useThreshold（推荐开启以生成矢量轮廓）
-        invertCheckbox.checked  // ✅ 是否反相
-      );
-
-      // 创建图像对象
-      const imgObj = eda.pcb_PrimitiveImage.create(
-        pt.x,
-        pt.y,
-        edaImage,
+      // 始终使用内嵌二进制对象，不使用复杂多边形
+      const obj = eda.pcb_PrimitiveObject.create(
         EPCB_LayerId.TOP_SILKSCREEN,
-        width,
-        height,
-        0,
-        false,
-        false
+        pt.x, pt.y,
+        base64,
+        width, height,
+        0, false, 'img', false
       );
-      const ID = (await imgObj).getState_PrimitiveId();
-
+      const ID = (await obj).getState_PrimitiveId();
       currentImageID = ID;
 
-      showMessage(
-        invertCheckbox.checked 
-          ? "反相图片已附着到鼠标，请点击画布放置" 
-          : "图片已附着到鼠标，请点击画布放置"
-      );
+      showMessage(invertCheckbox.checked ? '反相图片已附着到鼠标，请点击画布放置' : '图片已附着到鼠标，请点击画布放置');
 
-      // 启动跟随
       followInterval = setInterval(async () => {
         try {
           const pos = await eda.pcb_SelectControl.getCurrentMousePosition();
-          await eda.pcb_PrimitiveImage.modify(currentImageID, { x: pos.x, y: pos.y });
+          await eda.pcb_PrimitiveObject.modify(currentImageID, { topLeftX: pos.x, topLeftY: pos.y });
         } catch (err) {
-          console.error('跟随失败:', err);
-          if (followInterval) {
-            clearInterval(followInterval);
-            followInterval = null;
-          }
+          if (followInterval) { clearInterval(followInterval); followInterval = null; }
         }
       }, 16);
 
     } catch (error) {
       console.error('导入失败:', error);
-      alert('导入失败: ' + (error.message || String(error)));
-      resetPreview();
+      showMessage('导入失败: ' + (error.message || String(error)));
     }
   });
+
+  // 由 JS 处理图像（反相），返回 base64
+  function getProcessedBase64() {
+    return new Promise((resolve, reject) => {
+      if (!originalImageData) { reject(new Error('无图像数据')); return; }
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        if (invertCheckbox.checked) {
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            data[i]     = 255 - data[i];
+            data[i + 1] = 255 - data[i + 1];
+            data[i + 2] = 255 - data[i + 2];
+            // alpha 通道不变
+          }
+          ctx.putImageData(imageData, 0, 0);
+        }
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = reject;
+      img.src = originalImageData;
+    });
+  }
 
   // 失去焦点时自动放置
   window.onblur = () => {
@@ -276,7 +311,7 @@
           top: 20px;
           left: 50%;
           transform: translateX(-50%);
-          background: #1e88e5;
+          background: #1e90ff;
           color: white;
           padding: 10px 20px;
           border-radius: 6px;
