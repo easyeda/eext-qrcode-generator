@@ -1,5 +1,7 @@
 # 二维码/条形码丝印生成工具
 
+[English](./README.en.md)
+
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 这是一个用于在嘉立创EDA中生成二维码和条形码的插件工具。
