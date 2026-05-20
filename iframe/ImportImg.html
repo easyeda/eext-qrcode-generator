@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>图片导入工具</title>
+  <title>图片导入</title>
   <style>
     * {
       margin: 0;
@@ -12,142 +12,238 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f1e7e3;
+      font-family: "Microsoft YaHei", Arial, sans-serif;
+      font-size: 12px;
+      color: #333;
+      background: #fff;
+      padding: 12px;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
       height: 100vh;
     }
 
-    .container {
-      background-color: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      width: 500px;
-      text-align: center;
+    .title {
+      font-size: 12px;
+      color: #333;
+      margin-bottom: 10px;
     }
 
-    h1 {
-      color: #1e90ff;
-      margin-bottom: 20px;
-    }
-
-    .file-input-wrapper {
-      position: relative;
-      display: inline-block;
-      margin-bottom: 15px;
+    /* ── 文件选择区域 ── */
+    .file-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
     }
 
     .file-input {
       display: none;
     }
 
-    .file-input-label {
+    .file-name {
+      flex: 1;
+      height: 24px;
+      line-height: 24px;
+      padding: 0 8px;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      background: #fff;
+      color: #868686;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-name.has-file {
+      color: #333;
+    }
+
+    /* ── 按钮 ── */
+    .btn {
       display: inline-block;
-      padding: 10px 20px;
-      background-color: #1e90ff;
-      color: white;
-      border-radius: 6px;
+      height: 28px;
+      line-height: 28px;
+      min-width: 96px;
+      padding: 0 10px;
+      font-family: "Microsoft YaHei", Arial, sans-serif;
+      font-size: 12px;
+      text-align: center;
+      border: 1px solid transparent;
+      border-radius: 2px;
       cursor: pointer;
-      transition: background-color 0.3s;
+      outline: none;
+      box-sizing: border-box;
+      text-decoration: none;
+      flex-shrink: 0;
     }
 
-    .file-input-label:hover {
-      background-color: #1873cc;
+    .btn-primary {
+      background: #1890ff;
+      border-color: #1890ff;
+      color: #fff;
     }
-
-    /* 反相选项 */
-    .invert-option {
-      margin: 12px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      color: #555;
+    .btn-primary:hover {
+      background: #40a9ff;
+      border-color: #40a9ff;
     }
-
-    .invert-option input {
-      transform: scale(1.2);
-    }
-
-    .preview-container {
-      margin: 20px 0;
-      min-height: 200px;
-      border: 2px dashed #e0f0ff;
-      border-radius: 8px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: white;
-    }
-
-    .preview-image {
-      max-width: 100%;
-      max-height: 200px;
-      border-radius: 6px;
-    }
-
-    .placeholder-text {
-      color: #87cefa;
-    }
-
-    .import-btn {
-      padding: 10px 20px;
-      background-color: #1e90ff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s;
-    }
-
-    .import-btn:hover:not(:disabled) {
-      background-color: #1873cc;
-    }
-
-    .import-btn:disabled {
-      background-color: #e0f0ff;
+    .btn-primary:disabled {
+      background: #d9d9d9;
+      border-color: #d9d9d9;
+      color: #fff;
       cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .btn-default {
+      background: #fff;
+      border-color: #d9d9d9;
+      color: #1890ff;
+    }
+    .btn-default:hover {
+      border-color: #1890ff;
+    }
+
+    /* ── 选项行 ── */
+    .option-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .option-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .option-group input[type="checkbox"],
+    .option-group input[type="radio"] {
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      margin: 0;
+      accent-color: #1890ff;
+    }
+
+    .option-group label {
+      cursor: pointer;
+      color: #333;
+      line-height: 15px;
+    }
+
+    /* ── 预览区 ── */
+    .preview-area {
+      flex: 1;
+      width: 100%;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .preview-area .placeholder {
+      color: #868686;
+    }
+
+    .preview-area img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    /* ── 底部按钮 ── */
+    .footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid #e9e9e9;
+    }
+
+    /* ── Toast ── */
+    .eda-toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1890ff;
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: 2px;
+      font-size: 12px;
+      font-family: "Microsoft YaHei", Arial, sans-serif;
+      z-index: 99999;
+      pointer-events: none;
+      animation: toastAnim 3s forwards;
+    }
+    @keyframes toastAnim {
+      0%   { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+      10%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+      85%  { opacity: 1; }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>图片导入工具</h1>
-    <div class="file-input-wrapper">
-      <input type="file" id="fileInput" class="file-input" accept=".png">
-      <label for="fileInput" class="file-input-label">选择 PNG 图片</label>
-    </div>
 
-    <!-- 反相选项 -->
-    <div class="invert-option">
+  <div class="title">选择 PNG 图片，导入到 PCB 丝印层。</div>
+
+  <div class="file-row">
+    <input type="file" id="fileInput" class="file-input" accept=".png">
+    <span class="file-name" id="fileName">未选择文件</span>
+    <label for="fileInput" class="btn btn-default">选择图片</label>
+  </div>
+
+  <div class="option-row">
+    <div class="option-group">
+      <input type="radio" name="layer" id="layerTop" value="top" checked>
+      <label for="layerTop">顶层丝印</label>
+    </div>
+    <div class="option-group">
+      <input type="radio" name="layer" id="layerBottom" value="bottom">
+      <label for="layerBottom">底层丝印</label>
+    </div>
+    <div class="option-group">
       <input type="checkbox" id="invertCheckbox">
-      <label for="invertCheckbox">启用反相</label>
+      <label for="invertCheckbox">反相</label>
     </div>
+  </div>
 
-    <div class="preview-container" id="previewContainer">
-      <span class="placeholder-text">图片预览区域</span>
-    </div>
-    <button id="importBtn" class="import-btn" disabled>导入</button>
+  <div class="preview-area" id="previewContainer">
+    <span class="placeholder">图片预览区域</span>
+  </div>
+
+  <div class="footer">
+    <button id="importBtn" class="btn btn-primary" disabled>导入</button>
   </div>
 
 <script>
   const fileInput = document.getElementById('fileInput');
+  const fileName = document.getElementById('fileName');
   const previewContainer = document.getElementById('previewContainer');
   const importBtn = document.getElementById('importBtn');
   const invertCheckbox = document.getElementById('invertCheckbox');
+  const layerTop = document.getElementById('layerTop');
+  const layerBottom = document.getElementById('layerBottom');
 
   let followInterval = null;
   let currentImageID = null;
   let originalImageData = null;
 
-  // 文件选择
+  function getLayerId() {
+    return layerTop.checked ? EPCB_LayerId.TOP_SILKSCREEN : EPCB_LayerId.BOTTOM_SILKSCREEN;
+  }
+
   fileInput.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file && file.type === 'image/png') {
+      fileName.textContent = file.name;
+      fileName.classList.add('has-file');
       const reader = new FileReader();
       reader.onload = () => {
         originalImageData = reader.result;
@@ -156,16 +252,13 @@
       };
       reader.readAsDataURL(file);
     } else {
-      alert('请选择有效的 PNG 图片！');
+      showToast('请选择有效的 PNG 图片');
       resetPreview();
     }
   });
 
-  // 反相复选框改变时更新预览
   invertCheckbox.addEventListener('change', () => {
-    if (originalImageData) {
-      updatePreview();
-    }
+    if (originalImageData) updatePreview();
   });
 
   function updatePreview() {
@@ -182,26 +275,27 @@
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
         for (let i = 0; i < data.length; i += 4) {
-          data[i] = 255 - data[i];
+          data[i]     = 255 - data[i];
           data[i + 1] = 255 - data[i + 1];
           data[i + 2] = 255 - data[i + 2];
         }
         ctx.putImageData(imageData, 0, 0);
-        previewContainer.innerHTML = `<img src="${canvas.toDataURL()}" class="preview-image" alt="预览">`;
+        previewContainer.innerHTML = `<img src="${canvas.toDataURL()}" alt="预览">`;
       };
       img.src = originalImageData;
     } else {
-      previewContainer.innerHTML = `<img src="${originalImageData}" class="preview-image" alt="预览">`;
+      previewContainer.innerHTML = `<img src="${originalImageData}" alt="预览">`;
     }
   }
 
   function resetPreview() {
-    previewContainer.innerHTML = '<span class="placeholder-text">图片预览区域</span>';
+    previewContainer.innerHTML = '<span class="placeholder">图片预览区域</span>';
     importBtn.disabled = true;
     originalImageData = null;
+    fileName.textContent = '未选择文件';
+    fileName.classList.remove('has-file');
   }
 
-  // 导入主逻辑
   importBtn.addEventListener('click', async function() {
     const file = fileInput.files[0];
     if (!file) return;
@@ -212,10 +306,12 @@
     }
 
     try {
-      // 由 JS 完成图像处理（含反相），输出处理后的 base64
+      const layerId = getLayerId();
+      const layerName = layerTop.checked ? '顶层丝印' : '底层丝印';
+      await eda.pcb_Layer.selectLayer(layerId);
+
       const base64 = await getProcessedBase64();
 
-      // 从处理后的图像读取尺寸
       const img = new Image();
       await new Promise(resolve => { img.onload = resolve; img.src = base64; });
       const width = img.width;
@@ -223,9 +319,8 @@
 
       const pt = await eda.pcb_SelectControl.getCurrentMousePosition();
 
-      // 始终使用内嵌二进制对象，不使用复杂多边形
       const obj = eda.pcb_PrimitiveObject.create(
-        EPCB_LayerId.TOP_SILKSCREEN,
+        layerId,
         pt.x, pt.y,
         base64,
         width, height,
@@ -234,7 +329,8 @@
       const ID = (await obj).getState_PrimitiveId();
       currentImageID = ID;
 
-      showMessage(invertCheckbox.checked ? '反相图片已附着到鼠标，请点击画布放置' : '图片已附着到鼠标，请点击画布放置');
+      const prefix = invertCheckbox.checked ? '反相' : '';
+      showToast(`${prefix}图片已附着到鼠标，目标层: ${layerName}，请点击画布放置`);
 
       followInterval = setInterval(async () => {
         try {
@@ -247,11 +343,10 @@
 
     } catch (error) {
       console.error('导入失败:', error);
-      showMessage('导入失败: ' + (error.message || String(error)));
+      showToast('导入失败: ' + (error.message || String(error)));
     }
   });
 
-  // 由 JS 处理图像（反相），返回 base64
   function getProcessedBase64() {
     return new Promise((resolve, reject) => {
       if (!originalImageData) { reject(new Error('无图像数据')); return; }
@@ -269,7 +364,6 @@
             data[i]     = 255 - data[i];
             data[i + 1] = 255 - data[i + 1];
             data[i + 2] = 255 - data[i + 2];
-            // alpha 通道不变
           }
           ctx.putImageData(imageData, 0, 0);
         }
@@ -280,57 +374,27 @@
     });
   }
 
-  // 失去焦点时自动放置
   window.onblur = () => {
     if (followInterval) {
       clearInterval(followInterval);
       followInterval = null;
       currentImageID = null;
-      showMessage("图片已放置");
+      showToast('图片已放置');
     }
   };
 
-  // ESC 取消
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && followInterval) {
       clearInterval(followInterval);
       followInterval = null;
       currentImageID = null;
-      showMessage("已取消放置");
+      showToast('已取消放置');
     }
   });
 
-  // 消息提示
-  function showMessage(text) {
-    if (!document.getElementById('msg-style')) {
-      const style = document.createElement('style');
-      style.id = 'msg-style';
-      style.textContent = `
-        .eda-message {
-          position: fixed;
-          top: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: #1e90ff;
-          color: white;
-          padding: 10px 20px;
-          border-radius: 6px;
-          box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-          z-index: 10000;
-          animation: fadeOut 3s forwards;
-        }
-        @keyframes fadeOut {
-          0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-          10% { opacity: 1; transform: translateX(-50%) translateY(0); }
-          90% { opacity: 1; }
-          100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
+  function showToast(text) {
     const el = document.createElement('div');
-    el.className = 'eda-message';
+    el.className = 'eda-toast';
     el.textContent = text;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 3000);
