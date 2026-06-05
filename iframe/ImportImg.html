@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="page-title"></title>
+  <title id="page-title" data-i18n="Import Image">图片导入</title>
   <style>
     * {
       margin: 0;
@@ -191,35 +191,35 @@
 </head>
 <body>
 
-  <div class="title" id="desc-text"></div>
+  <div class="title" id="desc-text" data-i18n="Select a PNG image to import to PCB silkscreen layer.">选择 PNG 图片，导入到 PCB 丝印层。</div>
 
   <div class="file-row">
     <input type="file" id="fileInput" class="file-input" accept=".png">
-    <span class="file-name" id="fileName"></span>
-    <label for="fileInput" class="btn btn-default" id="btn-select"></label>
+    <span class="file-name" id="fileName" data-i18n="No file selected">未选择文件</span>
+    <label for="fileInput" class="btn btn-default" id="btn-select" data-i18n="Select Image">选择图片</label>
   </div>
 
   <div class="option-row">
     <div class="option-group">
       <input type="radio" name="layer" id="layerTop" value="top" checked>
-      <label for="layerTop" id="lbl-top"></label>
+      <label for="layerTop" id="lbl-top" data-i18n="Top Silkscreen">顶层丝印</label>
     </div>
     <div class="option-group">
       <input type="radio" name="layer" id="layerBottom" value="bottom">
-      <label for="layerBottom" id="lbl-bottom"></label>
+      <label for="layerBottom" id="lbl-bottom" data-i18n="Bottom Silkscreen">底层丝印</label>
     </div>
     <div class="option-group">
       <input type="checkbox" id="invertCheckbox">
-      <label for="invertCheckbox" id="lbl-invert"></label>
+      <label for="invertCheckbox" id="lbl-invert" data-i18n="Invert">反相</label>
     </div>
   </div>
 
   <div class="preview-area" id="previewContainer">
-    <span class="placeholder" id="lbl-preview"></span>
+    <span class="placeholder" id="lbl-preview" data-i18n="Image Preview">图片预览区域</span>
   </div>
 
   <div class="footer">
-    <button id="importBtn" class="btn btn-primary" disabled></button>
+    <button id="importBtn" class="btn btn-primary" disabled data-i18n="Import">导入</button>
   </div>
 
 <script>
@@ -229,15 +229,17 @@
     return tag;
   }
 
-  document.getElementById('page-title').textContent = t('Import Image');
-  document.getElementById('desc-text').textContent = t('Select a PNG image to import to PCB silkscreen layer.');
-  document.getElementById('fileName').textContent = t('No file selected');
-  document.getElementById('btn-select').textContent = t('Select Image');
-  document.getElementById('lbl-top').textContent = t('Top Silkscreen');
-  document.getElementById('lbl-bottom').textContent = t('Bottom Silkscreen');
-  document.getElementById('lbl-invert').textContent = t('Invert');
-  document.getElementById('lbl-preview').textContent = t('Image Preview');
-  document.getElementById('importBtn').textContent = t('Import');
+  function applyI18n() {
+    var els = document.querySelectorAll('[data-i18n]');
+    for (var i = 0; i < els.length; i++) {
+      els[i].textContent = t(els[i].getAttribute('data-i18n'));
+    }
+    var phEls = document.querySelectorAll('[data-i18n-placeholder]');
+    for (var i = 0; i < phEls.length; i++) {
+      phEls[i].placeholder = t(phEls[i].getAttribute('data-i18n-placeholder'));
+    }
+  }
+  applyI18n();
 
   const fileInput = document.getElementById('fileInput');
   const fileName = document.getElementById('fileName');

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title id="page-title"></title>
+  <title id="page-title" data-i18n="History">历史记录</title>
   <link rel="stylesheet" href="/iframe/css/style.css" />
   <script src="/iframe/js/JsBarcode.all.min.js"></script>
   <script src="/iframe/js/qrcode.min.js"></script>
@@ -24,24 +24,24 @@
         <thead>
           <tr>
             <th style="width: 40px;"><input type="checkbox" id="select-all" /></th>
-            <th style="width: 60px;" id="th-preview"></th>
-            <th onclick="sortTable('type')"><span id="th-type"></span> <span class="sort-icon">⇅</span><span class="filter-icon" id="toggle-filter"></span></th>
-            <th onclick="sortTable('size')"><span id="th-size"></span> <span class="sort-icon">⇅</span></th>
-            <th><span id="th-content"></span> <span class="filter-icon" id="toggle-filter-2"></span></th>
-            <th onclick="sortTable('color')"><span id="th-color"></span> <span class="sort-icon">⇅</span><span class="filter-icon" id="toggle-filter-3"></span></th>
-            <th id="th-operation"></th>
+            <th style="width: 60px;" id="th-preview" data-i18n="Preview">预览</th>
+            <th onclick="sortTable('type')"><span id="th-type" data-i18n="Type">类型</span> <span class="sort-icon">⇅</span><span class="filter-icon" id="toggle-filter" data-i18n="Filter">筛选</span></th>
+            <th onclick="sortTable('size')"><span id="th-size" data-i18n="Size (mm)">尺寸(mm)</span> <span class="sort-icon">⇅</span></th>
+            <th><span id="th-content" data-i18n="Content">内容</span> <span class="filter-icon" id="toggle-filter-2" data-i18n="Filter">筛选</span></th>
+            <th onclick="sortTable('color')"><span id="th-color" data-i18n="Color">彩色</span> <span class="sort-icon">⇅</span><span class="filter-icon" id="toggle-filter-3" data-i18n="Filter">筛选</span></th>
+            <th id="th-operation" data-i18n="Operation">操作</th>
           </tr>
           <tr class="filter-row" id="filter-row" style="display: none;">
             <td></td>
             <td></td>
-            <td><input type="text" class="filter-input" id="filter-type" placeholder=""></td>
+            <td><input type="text" class="filter-input" id="filter-type" placeholder="二维码/条形码" data-i18n-placeholder="QR Code / Barcode"></td>
             <td></td>
-            <td><input type="text" class="filter-input" id="filter-content" placeholder=""></td>
+            <td><input type="text" class="filter-input" id="filter-content" placeholder="关键词" data-i18n-placeholder="Keyword"></td>
             <td>
               <select class="filter-select" id="filter-color">
-                <option value=""></option>
-                <option value="是"></option>
-                <option value="否"></option>
+                <option value="" data-i18n="All">全部</option>
+                <option value="是" data-i18n="Yes">是</option>
+                <option value="否" data-i18n="No">否</option>
               </select>
             </td>
             <td></td>
@@ -49,18 +49,18 @@
         </thead>
         <tbody id="history-list">
           <tr class="empty-row">
-            <td colspan="7" id="loading-text"></td>
+            <td colspan="7" id="loading-text" data-i18n="Loading...">加载中...</td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div class="actions">
-      <button id="batch-delete-btn" class="btn btn-danger" style="display:none;"></button>
-      <button id="export-json-btn" class="btn btn-success"></button>
-      <button id="export-csv-btn" class="btn btn-success"></button>
-      <button id="clear-btn" class="btn btn-danger"></button>
-      <button id="back-btn" class="btn btn-outline"></button>
+      <button id="batch-delete-btn" class="btn btn-danger" style="display:none;" data-i18n="Batch Delete">批量删除</button>
+      <button id="export-json-btn" class="btn btn-success" data-i18n="Export JSON">导出JSON</button>
+      <button id="export-csv-btn" class="btn btn-success" data-i18n="Export CSV">导出CSV</button>
+      <button id="clear-btn" class="btn btn-danger" data-i18n="Clear All">清空全部</button>
+      <button id="back-btn" class="btn btn-outline" data-i18n="Close">关闭</button>
     </div>
   </div>
 
@@ -71,28 +71,17 @@ function t(tag, ...args) {
   return tag;
 }
 
-document.getElementById('page-title').textContent = t('History');
-document.getElementById('th-preview').textContent = t('Preview');
-document.getElementById('th-type').textContent = t('Type');
-document.getElementById('th-size').textContent = t('Size (mm)');
-document.getElementById('th-content').textContent = t('Content');
-document.getElementById('th-color').textContent = t('Color');
-document.getElementById('th-operation').textContent = t('Operation');
-document.getElementById('toggle-filter').textContent = t('Filter');
-document.getElementById('toggle-filter-2').textContent = t('Filter');
-document.getElementById('toggle-filter-3').textContent = t('Filter');
-document.getElementById('filter-type').placeholder = t('QR Code / Barcode');
-document.getElementById('filter-content').placeholder = t('Keyword');
-var filterColorSelectInit = document.getElementById('filter-color');
-filterColorSelectInit.options[0].textContent = t('All');
-filterColorSelectInit.options[1].textContent = t('Yes');
-filterColorSelectInit.options[2].textContent = t('No');
-document.getElementById('loading-text').textContent = t('Loading...');
-document.getElementById('batch-delete-btn').textContent = t('Batch Delete');
-document.getElementById('export-json-btn').textContent = t('Export JSON');
-document.getElementById('export-csv-btn').textContent = t('Export CSV');
-document.getElementById('clear-btn').textContent = t('Clear All');
-document.getElementById('back-btn').textContent = t('Close');
+function applyI18n() {
+  var els = document.querySelectorAll('[data-i18n]');
+  for (var i = 0; i < els.length; i++) {
+    els[i].textContent = t(els[i].getAttribute('data-i18n'));
+  }
+  var phEls = document.querySelectorAll('[data-i18n-placeholder]');
+  for (var i = 0; i < phEls.length; i++) {
+    phEls[i].placeholder = t(phEls[i].getAttribute('data-i18n-placeholder'));
+  }
+}
+applyI18n();
 
 document.addEventListener('DOMContentLoaded', () => {
   const HistoryList = document.getElementById('history-list');
