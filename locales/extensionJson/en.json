@@ -1,7 +1,10 @@
 {
 	"About...": "About...",
-	"displayName": "QR Code Generator",
-	"description": "QR Code / Barcode silkscreen generation tool",
+	"二维码生成器": "QR Code Generator",
+	"二维码/条形码丝印生成工具": "QR Code / Barcode silkscreen generation tool",
 	"PCB": "PCB",
-	"二维码": "QR Code"
+	"二维码": "QR Code",
+	"二维码生成": "QR Code Generator",
+	"生成二维码/条形码...": "Generate QR Code/Barcode...",
+	"从图片导入...": "Import from Image..."
 }
