@@ -1,3 +1,7 @@
 {
-	"About...": "About..."
+	"About...": "About...",
+	"displayName": "QR Code Generator",
+	"description": "QR Code / Barcode silkscreen generation tool",
+	"PCB": "PCB",
+	"二维码": "QR Code"
 }

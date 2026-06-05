@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>生成二维码</title>
+		<title id="page-title"></title>
 		<link rel="stylesheet" href="/iframe/css/style.css" />
 		<script src="/iframe/js/script.js"></script>
 		<script src="/iframe/js/JsBarcode.all.min.js"></script>
@@ -16,31 +16,29 @@
 			<main>
 				<div class="input-section">
 					<div class="form-group">
-						<!-- <label style="text-align: center" for="qr-text">输入内容</label> -->
-						<textarea id="qr-text" style="resize: none" placeholder="请输入内容"></textarea>
+						<textarea id="qr-text" style="resize: none" placeholder=""></textarea>
 					</div>
 				</div>
 				<div style="display: flex; width: 100%; gap: 10px">
-					<button id="generate-btn" class="btn-primary" style="flex: 1">二维码</button>
-					<button id="getBrCode" class="btn-primary" style="flex: 1">条形码</button>
-					<button id="history-btn"class="btn-primary" style="flex: 1">从历史导入</button>
-					<!-- 待定 -->
+					<button id="generate-btn" class="btn-primary" style="flex: 1"></button>
+					<button id="getBrCode" class="btn-primary" style="flex: 1"></button>
+					<button id="history-btn"class="btn-primary" style="flex: 1"></button>
 				</div>
 				<div style="display: flex; align-items: center; width: 100%; justify-content: start; margin-top: -15px">
-					<label for="qr-size" style="white-space: nowrap; margin-right: 20px">图片宽度(mm)： </label>
+					<label for="qr-size" id="lbl-size" style="white-space: nowrap; margin-right: 20px"></label>
 					<input id="InputSize" type="text" style="width: 70px; margin-right: 100px" value="100" />
 					<input type="checkbox" name="color" id="buttontest" value="color" class="EDA_UI_FuXuanKuang" />
-					<label for="buttontest">生成彩色图片</label>
+					<label for="buttontest" id="lbl-color"></label>
 					<input type="color" id="qr-color" value="#000000" />
 				</div>
 				<div style="display: flex; align-items: center; width: 100%; justify-content: start; margin-top: -15px">
-					<label for="filename-input" style="white-space: nowrap; margin-right: 20px">文件名： </label>
-					<input id="filename-input" type="text" style="width: 300px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="输入文件名（不含扩展名）" />
+					<label for="filename-input" id="lbl-filename" style="white-space: nowrap; margin-right: 20px"></label>
+					<input id="filename-input" type="text" style="width: 300px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="" />
 				</div>
 				<div class="output-section" style="margin-top: -15px">
 					<div id="qr-result" class="qr-result">
 						<div class="placeholder">
-							<p>预览区</p>
+							<p id="lbl-preview"></p>
 						</div>
 					</div>
 				</div>
@@ -49,27 +47,48 @@
 					style="display: flex; align-items: center; justify-content: flex-start; flex-wrap: nowrap; gap: 10px; margin-top: -15px"
 				>
 					<input type="checkbox" name="CreateType" id="CreateType" class="EDA_UI_FuXuanKuang" />
-					<label for="CreateType">放置在坐标 </label>
-					<p>x：<input type="text" id="xCoord" placeholder="输入X" value="0" /></p>
-					<p>y：<input type="text" id="yCoord" placeholder="输入Y" value="0" /></p>
+					<label for="CreateType" id="lbl-coord"></label>
+					<p>x：<input type="text" id="xCoord" placeholder="" value="0" /></p>
+					<p>y：<input type="text" id="yCoord" placeholder="" value="0" /></p>
 				</div>
 				<div id="download-section" class="download-section" style="margin-top: -15px">
 					<div>
-						<button id="download-btn" class="btn-secondary">下载</button>
-						<button id="Save-btn" class="btn-secondary">保存</button>
+						<button id="download-btn" class="btn-secondary"></button>
+						<button id="Save-btn" class="btn-secondary"></button>
 					</div>
 					<div>
-						<button id="Create-btn" class="btn-secondary">放置</button>
-						<button id="Back-btn" class="btn-secondary">取消</button>
+						<button id="Create-btn" class="btn-secondary"></button>
+						<button id="Back-btn" class="btn-secondary"></button>
 					</div>
 				</div>
-				<!-- 				<div id="coordinateInputs" class="input-group" style="display:; margin-left:10px;">
-
-				</div> -->
 			</main>
 		</div>
 
 		<!-- 引入二维码生成库 此处为CDN方式导入 如果EDA客户端需要完全断网 则不使用此方式导入 -->
 		<!-- <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script> -->
+	<script>
+		var edaObj = (typeof eda !== 'undefined') ? eda : (window.parent && window.parent.eda);
+		function t(tag) {
+			if (edaObj && edaObj.sys_I18n) return edaObj.sys_I18n.text(tag);
+			return tag;
+		}
+		document.getElementById('page-title').textContent = t('Generate QR Code');
+		document.getElementById('qr-text').placeholder = t('Please enter content');
+		document.getElementById('generate-btn').textContent = t('QR Code');
+		document.getElementById('getBrCode').textContent = t('Barcode');
+		document.getElementById('history-btn').textContent = t('Import from History');
+		document.getElementById('lbl-size').textContent = t('Image Width (mm):');
+		document.getElementById('lbl-color').textContent = t('Generate Color Image');
+		document.getElementById('lbl-filename').textContent = t('Filename:');
+		document.getElementById('filename-input').placeholder = t('Enter filename (without extension)');
+		document.getElementById('lbl-preview').textContent = t('Preview');
+		document.getElementById('lbl-coord').textContent = t('Place at Coordinates');
+		document.getElementById('xCoord').placeholder = t('Enter X');
+		document.getElementById('yCoord').placeholder = t('Enter Y');
+		document.getElementById('download-btn').textContent = t('Download');
+		document.getElementById('Save-btn').textContent = t('Save');
+		document.getElementById('Create-btn').textContent = t('Place');
+		document.getElementById('Back-btn').textContent = t('Cancel');
+	</script>
 	</body>
 </html>

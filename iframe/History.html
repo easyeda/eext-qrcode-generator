@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>历史记录</title>
+  <title id="page-title"></title>
   <link rel="stylesheet" href="/iframe/css/style.css" />
   <script src="/iframe/js/JsBarcode.all.min.js"></script>
   <script src="/iframe/js/qrcode.min.js"></script>
@@ -24,24 +24,24 @@
         <thead>
           <tr>
             <th style="width: 40px;"><input type="checkbox" id="select-all" /></th>
-            <th style="width: 60px;">预览</th>
-            <th onclick="sortTable('type')">类型 <span class="sort-icon">⇅</span><span class="filter-icon" id="toggle-filter">筛选</span></th>
-            <th onclick="sortTable('size')">尺寸(mm) <span class="sort-icon">⇅</span></th>
-            <th>内容 <span class="filter-icon" id="toggle-filter-2">筛选</span></th>
-            <th onclick="sortTable('color')">彩色 <span class="sort-icon">⇅</span><span class="filter-icon" id="toggle-filter-3">筛选</span></th>
-            <th>操作</th>
+            <th style="width: 60px;" id="th-preview"></th>
+            <th onclick="sortTable('type')"><span id="th-type"></span> <span class="sort-icon">⇅</span><span class="filter-icon" id="toggle-filter"></span></th>
+            <th onclick="sortTable('size')"><span id="th-size"></span> <span class="sort-icon">⇅</span></th>
+            <th><span id="th-content"></span> <span class="filter-icon" id="toggle-filter-2"></span></th>
+            <th onclick="sortTable('color')"><span id="th-color"></span> <span class="sort-icon">⇅</span><span class="filter-icon" id="toggle-filter-3"></span></th>
+            <th id="th-operation"></th>
           </tr>
           <tr class="filter-row" id="filter-row" style="display: none;">
             <td></td>
             <td></td>
-            <td><input type="text" class="filter-input" id="filter-type" placeholder="二维码/条形码"></td>
+            <td><input type="text" class="filter-input" id="filter-type" placeholder=""></td>
             <td></td>
-            <td><input type="text" class="filter-input" id="filter-content" placeholder="关键词"></td>
+            <td><input type="text" class="filter-input" id="filter-content" placeholder=""></td>
             <td>
               <select class="filter-select" id="filter-color">
-                <option value="">全部</option>
-                <option value="是">是</option>
-                <option value="否">否</option>
+                <option value=""></option>
+                <option value="是"></option>
+                <option value="否"></option>
               </select>
             </td>
             <td></td>
@@ -49,22 +49,51 @@
         </thead>
         <tbody id="history-list">
           <tr class="empty-row">
-            <td colspan="7">加载中...</td>
+            <td colspan="7" id="loading-text"></td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div class="actions">
-      <button id="batch-delete-btn" class="btn btn-danger" style="display:none;">批量删除</button>
-      <button id="export-json-btn" class="btn btn-success">导出JSON</button>
-      <button id="export-csv-btn" class="btn btn-success">导出CSV</button>
-      <button id="clear-btn" class="btn btn-danger">清空全部</button>
-      <button id="back-btn" class="btn btn-outline">关闭</button>
+      <button id="batch-delete-btn" class="btn btn-danger" style="display:none;"></button>
+      <button id="export-json-btn" class="btn btn-success"></button>
+      <button id="export-csv-btn" class="btn btn-success"></button>
+      <button id="clear-btn" class="btn btn-danger"></button>
+      <button id="back-btn" class="btn btn-outline"></button>
     </div>
   </div>
 
 <script>
+var edaObj = (typeof eda !== 'undefined') ? eda : (window.parent && window.parent.eda);
+function t(tag, ...args) {
+  if (edaObj && edaObj.sys_I18n) return edaObj.sys_I18n.text(tag, undefined, undefined, ...args);
+  return tag;
+}
+
+document.getElementById('page-title').textContent = t('History');
+document.getElementById('th-preview').textContent = t('Preview');
+document.getElementById('th-type').textContent = t('Type');
+document.getElementById('th-size').textContent = t('Size (mm)');
+document.getElementById('th-content').textContent = t('Content');
+document.getElementById('th-color').textContent = t('Color');
+document.getElementById('th-operation').textContent = t('Operation');
+document.getElementById('toggle-filter').textContent = t('Filter');
+document.getElementById('toggle-filter-2').textContent = t('Filter');
+document.getElementById('toggle-filter-3').textContent = t('Filter');
+document.getElementById('filter-type').placeholder = t('QR Code / Barcode');
+document.getElementById('filter-content').placeholder = t('Keyword');
+var filterColorSelectInit = document.getElementById('filter-color');
+filterColorSelectInit.options[0].textContent = t('All');
+filterColorSelectInit.options[1].textContent = t('Yes');
+filterColorSelectInit.options[2].textContent = t('No');
+document.getElementById('loading-text').textContent = t('Loading...');
+document.getElementById('batch-delete-btn').textContent = t('Batch Delete');
+document.getElementById('export-json-btn').textContent = t('Export JSON');
+document.getElementById('export-csv-btn').textContent = t('Export CSV');
+document.getElementById('clear-btn').textContent = t('Clear All');
+document.getElementById('back-btn').textContent = t('Close');
+
 document.addEventListener('DOMContentLoaded', () => {
   const HistoryList = document.getElementById('history-list');
   const BackButton = document.getElementById('back-btn');
@@ -128,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!emptyRow) {
         const tr = document.createElement('tr');
         tr.className = 'empty-row';
-        tr.innerHTML = '<td colspan="7" style="text-align:center;color:#6c757d;padding:20px 0;">无匹配记录</td>';
+        tr.innerHTML = '<td colspan="7" style="text-align:center;color:#6c757d;padding:20px 0;">' + t('No Matching Records') + '</td>';
         HistoryList.appendChild(tr);
       }
     } else if (emptyRow) {
@@ -173,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function showConfirmDialog(title, onConfirm) {
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000;';
-    overlay.innerHTML = `<div style="background:white;padding:20px;border-radius:8px;max-width:300px;text-align:center;font-size:15px;"><div style="margin-bottom:16px;font-weight:600;">${title}</div><div style="display:flex;gap:10px;justify-content:center;"><button style="flex:1;padding:6px;border:1px solid #ccc;border-radius:4px;">取消</button><button style="flex:1;padding:6px;background:#dc3545;color:white;border:none;border-radius:4px;">确定</button></div></div>`;
+    overlay.innerHTML = `<div style="background:white;padding:20px;border-radius:8px;max-width:300px;text-align:center;font-size:15px;"><div style="margin-bottom:16px;font-weight:600;">${title}</div><div style="display:flex;gap:10px;justify-content:center;"><button style="flex:1;padding:6px;border:1px solid #ccc;border-radius:4px;">${t('Cancel')}</button><button style="flex:1;padding:6px;background:#dc3545;color:white;border:none;border-radius:4px;">${t('Place')}</button></div></div>`;
     const cancel = overlay.querySelector('button');
     const confirm = overlay.querySelector('button:last-child');
     cancel.onclick = () => overlay.remove();
@@ -223,14 +252,14 @@ document.addEventListener('DOMContentLoaded', () => {
       allData = Object.entries(all).filter(([k]) => k.includes('qrcode') || k.includes('barcode')).map(([k, v]) => ({ id: k, ...v }));
       renderHistoryList(allData);
     } catch (e) {
-      HistoryList.innerHTML = '<tr class="empty-row"><td colspan="7">加载失败</td></tr>';
-      showMessage('加载失败');
+      HistoryList.innerHTML = '<tr class="empty-row"><td colspan="7">' + t('Loading Failed') + '</td></tr>';
+      showMessage(t('Loading Failed'));
     }
   }
 
   async function renderHistoryList(data) {
     if (!data.length) {
-      HistoryList.innerHTML = '<tr class="empty-row"><td colspan="7">暂无历史记录</td></tr>';
+      HistoryList.innerHTML = '<tr class="empty-row"><td colspan="7">' + t('No History Records') + '</td></tr>';
       return;
     }
 
@@ -273,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const typeCell = document.createElement('td');
       const tag = document.createElement('span');
       tag.className = `type-tag ${item.type === 'qrcode' ? 'qrcode-tag' : 'barcode-tag'}`;
-      tag.textContent = item.type === 'qrcode' ? '二维码' : '条形码';
+      tag.textContent = item.type === 'qrcode' ? t('QR Code') : t('Barcode');
       typeCell.appendChild(tag);
 
       const sizeCell = document.createElement('td');
@@ -285,22 +314,22 @@ document.addEventListener('DOMContentLoaded', () => {
       contentCell.title = item.content;
 
       const colorCell = document.createElement('td');
-      colorCell.textContent = item.useColorSilk ? '是' : '否';
+      colorCell.textContent = item.useColorSilk ? t('Yes') : t('No');
       colorCell.dataset.color = item.useColorSilk ? '是' : '否';
 
       const opCell = document.createElement('td');
       const delBtn = document.createElement('button');
       delBtn.className = 'delete-btn';
-      delBtn.textContent = '删除';
+      delBtn.textContent = t('Delete');
       delBtn.onclick = (e) => {
         e.stopPropagation();
-        showConfirmDialog('确定要删除这条记录吗？', async () => {
+        showConfirmDialog(t('Confirm delete this record?'), async () => {
           try {
             await deleteHistoryItem(item.id);
-            showMessage('删除成功');
+            showMessage(t('Delete Successful'));
             loadHistory();
           } catch (err) {
-            showMessage('删除失败');
+            showMessage(t('Delete Failed'));
           }
         });
       };
@@ -315,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateBatchDeleteBtn() {
     const checked = document.querySelectorAll('.row-checkbox:checked').length;
     BatchDeleteBtn.style.display = checked > 0 ? 'inline-block' : 'none';
-    BatchDeleteBtn.textContent = `批量删除 (${checked})`;
+    BatchDeleteBtn.textContent = t('Batch Delete (${1})', checked);
   }
 
   function base64ToBlob(b64, type) {
@@ -332,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   BatchDeleteBtn.onclick = () => {
     const checked = Array.from(document.querySelectorAll('.row-checkbox:checked'));
-    showConfirmDialog(`确定要删除选中的 ${checked.length} 条记录吗？`, async () => {
+    showConfirmDialog(t('Confirm delete selected ${1} records?', checked.length), async () => {
       let success = 0;
       for (const cb of checked) {
         try {
@@ -341,7 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
           success++;
         } catch (e) {}
       }
-      showMessage(`成功删除 ${success} 条记录`);
+      showMessage(t('Successfully deleted ${1} records', success));
       loadHistory();
     });
   };
@@ -355,23 +384,23 @@ document.addEventListener('DOMContentLoaded', () => {
     a.download = `history_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showMessage('导出成功');
+    showMessage(t('Export Successful'));
   };
 
   ExportCsvBtn.onclick = () => {
-    const csv = ['类型,内容,尺寸(mm),彩色丝印,时间'].concat(allData.map(d => `${d.type === 'qrcode' ? '二维码' : '条形码'},"${d.content}",${d.size},${d.useColorSilk ? '是' : '否'},${d.timestamp}`)).join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const csv = [t('Type') + ',' + t('Content') + ',' + t('Size (mm)') + ',' + t('Color') + ',' + t('History')].concat(allData.map(d => `${d.type === 'qrcode' ? t('QR Code') : t('Barcode')},"${d.content}",${d.size},${d.useColorSilk ? t('Yes') : t('No')},${d.timestamp}`)).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `history_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    showMessage('导出成功');
+    showMessage(t('Export Successful'));
   };
 
   ClearButton.onclick = () => {
-    showConfirmDialog('确定要清空所有历史记录吗？此操作不可恢复！', async () => {
+    showConfirmDialog(t('Confirm clear all history? This cannot be undone!'), async () => {
       try {
         const all = await eda.sys_Storage.getExtensionAllUserConfigs();
         const keys = Object.keys(all).filter(k => k.includes('qrcode') || k.includes('barcode'));
@@ -379,10 +408,10 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const k of keys) {
           try { await deleteHistoryItem(k); ok++; } catch (e) {}
         }
-        showMessage(`成功清空 ${ok} 条记录`);
+        showMessage(t('Successfully cleared ${1} records', ok));
         loadHistory();
       } catch {
-        showMessage('清空失败');
+        showMessage(t('Clear Failed'));
       }
     });
   };
@@ -395,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
   HistoryList.addEventListener('click', (e) => {
     const row = e.target.closest('tr:not(.empty-row):not(.filter-row)');
     if (!row || e.target.closest('button, input[type="checkbox"]')) return;
-    showMessage('双击可以放置到画布');
+    showMessage(t('Double-click to place on canvas'));
   });
 
   HistoryList.addEventListener('dblclick', async (e) => {
@@ -412,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const color = item.useColorSilk ? item.color : '#000000';
     const canvas = item.type === 'qrcode' ? await generateQRCode(item.content, color) : await generateBarcode(item.content, color);
-    if (!canvas) { showMessage('图像生成失败'); return; }
+    if (!canvas) { showMessage(t('Image generation failed')); return; }
 
     const base64 = canvas.toDataURL('image/png');
     const size = parseFloat(item.size);
@@ -436,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     currentImageID = ID;
-    showMessage('图像已附着到鼠标，点击画布放置');
+    showMessage(t('Image attached to mouse, click canvas to place'));
 
     followInterval = setInterval(async () => {
       try {
@@ -457,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearInterval(followInterval);
       followInterval = null;
       currentImageID = null;
-      showMessage("图像已放置");
+      showMessage(t("Image placed"));
     }
   };
 
@@ -466,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearInterval(followInterval);
       followInterval = null;
       currentImageID = null;
-      showMessage("已取消放置");
+      showMessage(t("Placement cancelled"));
     }
   });
 
