@@ -70,5 +70,14 @@
 	"Import Failed: ${1}": "导入失败: ${1}",
 	"No image data": "无图像数据",
 	"Import Failed": "导入失败",
-	"Preview Area": "图片预览区域"
+	"Preview Area": "图片预览区域",
+	"Incomplete parameters": "参数不完整",
+	"QR Code generated": "二维码已生成",
+	"Barcode generated": "条形码已生成",
+	"Image not generated": "图像未生成",
+	"Click on canvas to place silkscreen": "请在画布上点击以放置丝印",
+	"Error processing image: ${1}": "处理图像时出错: ${1}",
+	"No image data to save": "无图像数据可保存",
+	"History saved": "历史记录已保存",
+	"Save failed: ${1}": "保存失败: ${1}"
 }

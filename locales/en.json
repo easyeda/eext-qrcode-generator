@@ -70,5 +70,14 @@
 	"Import Failed: ${1}": "Import Failed: ${1}",
 	"No image data": "No image data",
 	"Import Failed": "Import Failed",
-	"Preview Area": "Preview Area"
+	"Preview Area": "Preview Area",
+	"Incomplete parameters": "Incomplete parameters",
+	"QR Code generated": "QR Code generated",
+	"Barcode generated": "Barcode generated",
+	"Image not generated": "Image not generated",
+	"Click on canvas to place silkscreen": "Click on canvas to place silkscreen",
+	"Error processing image: ${1}": "Error processing image: ${1}",
+	"No image data to save": "No image data to save",
+	"History saved": "History saved",
+	"Save failed: ${1}": "Save failed: ${1}"
 }
