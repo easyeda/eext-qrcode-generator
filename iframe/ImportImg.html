@@ -156,6 +156,12 @@
       object-fit: contain;
     }
 
+    .preview-area.drag-over {
+      border-color: #1890ff;
+      border-style: dashed;
+      background: #e6f7ff;
+    }
+
     /* ── 底部按钮 ── */
     .footer {
       display: flex;
@@ -255,6 +261,49 @@
       showToast('请选择有效的 PNG 图片');
       resetPreview();
     }
+  });
+
+  // ── 拖放支持 ──
+  previewContainer.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    previewContainer.classList.add('drag-over');
+  });
+
+  previewContainer.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    previewContainer.classList.remove('drag-over');
+  });
+
+  previewContainer.addEventListener('drop', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    previewContainer.classList.remove('drag-over');
+
+    const file = e.dataTransfer.files[0];
+    if (!file || file.type !== 'image/png') {
+      showToast('请拖入有效的 PNG 图片');
+      return;
+    }
+
+    fileName.textContent = file.name;
+    fileName.classList.add('has-file');
+    const reader = new FileReader();
+    reader.onload = () => {
+      originalImageData = reader.result;
+      updatePreview();
+      importBtn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // 防止浏览器默认打开拖入的文件
+  document.body.addEventListener('dragover', function(e) {
+    e.preventDefault();
+  });
+  document.body.addEventListener('drop', function(e) {
+    e.preventDefault();
   });
 
   invertCheckbox.addEventListener('change', () => {

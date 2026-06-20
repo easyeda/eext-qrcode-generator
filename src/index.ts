@@ -15,6 +15,10 @@ export function ImportImg(): void {
 	eda.sys_IFrame.openIFrame('/iframe/ImportImg.html', 500, 600, 'bonding_pad1');
 }
 
+export function BatchImport(): void {
+	eda.sys_IFrame.openIFrame('/iframe/BatchImport.html', 600, 520, 'bonding_pad_batch');
+}
+
 
 
 export function about(): void {}

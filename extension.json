@@ -3,7 +3,7 @@
 	"uuid": "dc575b025706476cabdfa7c45ec24bfb",
 	"displayName": "二维码生成器",
 	"description": "二维码/条形码丝印生成工具",
-	"version": "2.5.1",
+	"version": "2.6.1",
 	"publisher": "JLCEDA <support@lceda.cn>",
 	"engines": {
 		"eda": "^3.1.60 || >=3.2.69"
@@ -38,6 +38,11 @@
 					"id": "ImportImg",
 					"title": "从图片导入...",
 					"registerFn": "ImportImg"
+				},
+				{
+					"id": "BatchImport",
+					"title": "批量导入...",
+					"registerFn": "BatchImport"
 				}
 			]
 		}],
@@ -53,6 +58,11 @@
 					"id": "ImportImg",
 					"title": "从图片导入...",
 					"registerFn": "ImportImg"
+				},
+				{
+					"id": "BatchImport",
+					"title": "批量导入...",
+					"registerFn": "BatchImport"
 				}
 			]
 		}]
