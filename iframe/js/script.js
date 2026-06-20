@@ -1,3 +1,10 @@
+// i18n helper
+var edaObj = (typeof eda !== 'undefined') ? eda : (window.parent && window.parent.eda);
+function t(tag, ...args) {
+	if (edaObj && edaObj.sys_I18n) return edaObj.sys_I18n.text(tag, undefined, undefined, ...args);
+	return tag;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	// 输入的内容
 	const TextContent = document.getElementById('qr-text'); // 二维码内容
@@ -37,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		let color = '#000000';
 		if (!text || !size) {
 			// 内容或尺寸未填写则提示
-			showMessage('参数不完整');
+			showMessage(t('Incomplete parameters'));
 			return;
 		}
 		if (ColorFlag.checked) {
@@ -68,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			ImgType = 0;
 			BlobData = base64ToBlob(Base64, 'image/png');
 			console.log(Blob);
-			showMessage('二维码已生成');
+			showMessage(t('QR Code generated'));
 		} catch (error) {
 			// showMessage('生成二维码时出错: ' + error.message);
 			console.log(error.message);
@@ -83,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		let color = '#000000';
 		if (!text || !size) {
 			// 内容或尺寸未填写则提示
-			showMessage('参数不完整');
+			showMessage(t('Incomplete parameters'));
 			return;
 		}
 		if (ColorFlag.checked) {
@@ -108,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			Base64 = img.src;
 			BlobData = base64ToBlob(Base64, 'image/png');
 			ImgType = 1;
-			showMessage('条形码已生成');
+			showMessage(t('Barcode generated'));
 		} catch (error) {
 			// showMessage('生成条形码时出错: ' + error.message);
 		}
@@ -159,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	/* ================================下载生成好的图像================================================================== */
 	function Download() {
 		if (!Base64) {
-			showMessage('图像未生成');
+			showMessage(t('Image not generated'));
 			return;
 		}
 		const link = document.createElement('a');
@@ -192,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				eda.pcb_PrimitiveImage.create(x.value, y.value, edaImage, EPCB_LayerId.TOP_SILKSCREEN,
 					width, height, 0, false, false); // 在画布上创建图像
 			} else if (!CreateType.checked) {
-				showMessage('请在画布上点击以放置丝印');
+				showMessage(t('Click on canvas to place silkscreen'));
 				CreatForMouse();
 			} else {
 				console.log("意外事件");
@@ -201,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			// showMessage("成功");
 			return true;
 		} catch (error) {
-			showMessage('处理图像时出错: ' + error.message);
+			showMessage(t('Error processing image: ${1}', error.message));
 			return false;
 		}
 	}
@@ -228,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	/* ================================保存图像到历史记录================================================================== */
 	async function SaveHistory() {
 		if (!Base64 || !TextContent.value.trim()) {
-			showMessage('无图像数据可保存');
+			showMessage(t('No image data to save'));
 			return;
 		}
 
@@ -248,10 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
 			const keyName = (ImgType === 0 ? 'qrcode_' : 'barcode_') + timestamp;
 
 			await eda.sys_Storage.setExtensionUserConfig(keyName, dataToSave);
-			showMessage('历史记录已保存');
+			showMessage(t('History saved'));
 		} catch (error) {
 			console.error('保存历史记录失败:', error);
-			showMessage('保存失败: ' + error.message);
+			showMessage(t('Save failed: ${1}', error.message));
 		}
 	}
 	/* ================================从历史记录导入图像================================================================== */
