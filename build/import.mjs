@@ -3,7 +3,10 @@ import { createServer } from 'http';
 import { networkInterfaces } from 'os';
 
 const EXT_NAME = 'eext-qrcode-generator';
-const EXT_VERSION = '2.5.1';
+// 从 extension.json 动态读取版本号，避免版本升级后硬编码失效
+const EXT_VERSION = JSON.parse(
+  readFileSync(new URL('../extension.json', import.meta.url), 'utf-8'),
+).version;
 const EXT_FILE = `build/dist/${EXT_NAME}_v${EXT_VERSION}.eext`;
 
 async function findBridgePort() {
